@@ -5,14 +5,13 @@ import { Redirect } from 'react-router-dom'
 import * as AUTH_CONSTANTS from './Backend_answers/AuthConstants'
 const base64 = require('base-64')
 
-
 class App extends Component {
   constructor() {
     super();
     console.log('Fetching logged in request...')
-    fetch(`api/checkForLogin`, {
+    fetch(`api/checkForLogin`,   {
       accept: "application/json",
-      credentials: "same-origin"
+      credentials: "include"
     })
     .then((response) => response.json())
     .then((resp) => {
@@ -32,13 +31,25 @@ class App extends Component {
       vk_link: '',
       logged_in: false
     }
+
+    document.onkeypress = (e) => {
+      if (e.keyCode === 13 && this.state.modal_shown)  { // Enter Keycode
+        e.preventDefault()
+        this.setState({modal_shown: !this.state.modal_shown})
+      } else if (e.keyCode === 13 && this.state.email_value !== '' && this.state.password_value !== '' && this.validateEmail(this.state.email_value)) {
+        e.preventDefault()
+        this.authCallback()
+      }
+    }
+    
   }
+ 
 
   getEmailValidationState = () => {
     // eslint-disable-next-line
     let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     if (this.state.email_value === "") return null
-    return re.test(this.state.email_value) ? 'success' : 'error';
+    return re.test(this.state.email_value) ? 'success' : 'error'  
   }
 
   handleEmailChange = (e) => {
@@ -54,10 +65,10 @@ class App extends Component {
   }
 
   authCallback = () => {
-    if (this.state.email_value !== "" && this.state.password_value !== "") {
+    if (this.state.email_value !== "" && this.state.password_value !== "" && this.validateEmail(this.state.email_value)) {
       return fetch(`api/auth?email=${base64.encode(this.state.email_value)}&pass=${base64.encode(this.state.password_value)}`, {
         accept: "application/json",
-        credentials: 'same-origin'
+        credentials: 'include'
       })
       .then((response) => {
         if (response.status >= 200 && response.status < 300) {
@@ -67,6 +78,12 @@ class App extends Component {
         } else {
           response.json().then((response) => {
             switch (response.error) {
+              case AUTH_CONSTANTS.USER_IS_NOT_APPROVED:
+                this.setState({
+                  modal_title: 'Error',
+                  modal_text: 'Your e-mail is not yet approved. Wait for teacher to approve it.'
+                })
+                break;
               case AUTH_CONSTANTS.WRONG_PASSWORD:
                 this.setState({
                   modal_title: 'Error',
@@ -83,7 +100,7 @@ class App extends Component {
                 this.setState({
                   modal_title: 'Error',
                   modal_text: 'Something really, really bad mumbo-jumbo happened. Immediately report it to ',
-                  vk_link: <a href="https://vk.com/rmk1337">Kirill Pavidlov</a>
+                  vk_link: <a href="https://vk.com/rmk1337" rel="noopener noreferrer" target="_blank">Kirill Pavidlov</a>
                 })
                 break;          
               }
@@ -95,10 +112,10 @@ class App extends Component {
   }
 
   registerCallback = () => {
-    if (this.state.email_value !== "" && this.state.password_value !== "") {
+    if (this.state.email_value !== "" && this.state.password_value !== "" && this.validateEmail(this.state.email_value)) {
       return fetch(`api/register?email=${base64.encode(this.state.email_value)}&pass=${base64.encode(this.state.password_value)}`, {
         accept: "application/json",
-        credentials: 'same-origin'
+        credentials: 'include'
       })
       .then((response) => {
         if (response.status === 200) {
@@ -127,14 +144,14 @@ class App extends Component {
                   this.setState({
                     modal_title: 'Error',
                     modal_text: 'Some backend exception happened. Report this incident to your teacher or to ',
-                    vk_link: <a href="https://vk.com/rmk1337">Kirill Pavidlov</a>
+                    vk_link: <a href="https://vk.com/rmk1337" rel="noopener noreferrer" target="_blank">Kirill Pavidlov</a>
                   })
                   break;
                 default:
                 this.setState({
                   modal_title: 'Error',
                   modal_text: 'Something really, really bad mumbo-jumbo happened. Immediately report it to ',
-                  vk_link: <a href="https://vk.com/rmk1337">Kirill Pavidlov</a>
+                  vk_link: <a href="https://vk.com/rmk1337" rel="noopener noreferrer" target="_blank">Kirill Pavidlov</a>
                 })
             }
             this.setState({modal_shown: true})
@@ -168,8 +185,8 @@ class App extends Component {
         </div>
         <Col xs={12} md={12}>
           <Row>
-            <Col lg={2} lgOffset={5} md={4} mdOffset={4} xs={4} xsOffset={4} className="auth-container">
-              <Form>
+              <Col lg={2} lgOffset={5} md={4} mdOffset={4} xs={4} xsOffset={4} className="auth-container">
+                <Form>
                 <FormGroup className="auth-email" controlId="formBasicText" validationState={this.getEmailValidationState()}>
                   <ControlLabel> Enter your E-mail address: </ControlLabel>
                   <FormControl type="email" 
@@ -189,17 +206,28 @@ class App extends Component {
               </Form>
               <ButtonToolbar className="auth-buttons">
                 <Button onClick={this.registerCallback} bsSize="large" bsStyle="primary">Register</Button>
-                <Button onClick={this.authCallback} bsSize="large" bsStyle="success">Log in</Button>
+                <Button onClick={this.authCallback} type="submit" bsSize="large" bsStyle="success">Log in</Button>
               </ButtonToolbar>
             </Col>
           </Row>
         </Col>
         <div className="footer"> 
-            <p> Created with <span id="heart">❤</span> by <a href="https://vk.com/rmk1337"> Kirill Pavidlov </a></p>
+            <p> Created with <span id="heart">❤</span> by <a href="https://vk.com/rmk1337" rel="noopener noreferrer" target="_blank"> Kirill Pavidlov </a></p>
           </div>
       </div>
-    ) : (<Redirect from="/" to="assignments" />)
+    ) : <Redirect to={{
+      pathname: '/add-info',
+      state: { email: this.state.email_value }
+    }}/>
+    
+  }
+
+  validateEmail = (email) => {
+    // eslint-disable-next-line
+    let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(this.state.email_value)  
   }
 }
+
 
 export default App;

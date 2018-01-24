@@ -8,6 +8,7 @@
     "connect-mongo": "^2.0.0",
     "cookie-parser": "^1.4.3",
     "express": "4.13.3",
+    "express-fileupload": "^0.3.0",
     "express-session": "^1.15.6",
     "fs": "0.0.2",
     "graceful-fs": "^4.1.11",
@@ -19,14 +20,6 @@
     "secure-random": "^1.1.1",
     "sha1": "^1.1.1",
     "sql.js": "0.3.2"
-  },
-  "lint-staged": {
-    "src/**/*.{js,jsx,json,css}": [
-      "prettier --single-quote --write"
-    ],
-    "./**.{js}": [
-      "prettier --single-quote --write"
-    ]
   },
   "scripts": {
     "start": "concurrently \"npm run server\" \"npm run client\"",
@@ -40,6 +33,7 @@
     "concurrently": "^3.5.0",
     "eslint": "^3.19.0",
     "eslint-config-airbnb": "14.1.0",
+    "eslint-config-google": "^0.9.1",
     "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-jsx-a11y": "4.0.0",
     "eslint-plugin-react": "6.9.0"

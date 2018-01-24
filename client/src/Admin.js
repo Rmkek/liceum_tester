@@ -1,21 +1,92 @@
 import React, {Component} from 'react';
-import {Table} from 'react-bootstrap';
+import {Table, Button} from 'react-bootstrap';
+import './Admin.css'
+
+let keyIter = 0
 
 class Admin extends Component {
-    constructor() {
-        super()
-        fetch(`admin`, {
-            accept: "application/json"
-          })
-          .then((response) => {
-            console.log(response)
-          })
+  constructor() {
+    super()
+    fetch(`api/getNotApprovedUsers`, {
+      accept: "application/json",
+      credentials: "include"
+    }).then((response) => response.json()).then((resp) => {
+      let users = []
+      resp
+        .success
+        .forEach(element => {
+          users.push(this.renderTableRow(element.email))
+        }, this);
+      this.setState({table_body: users})
+    })
+
+    this.handleChange = this
+      .handleChange
+      .bind(this)
+
+    this.state = {
+      table_body: <tr></tr>,
+      users_in_table: 0
+    }
+  }
+
+  render() {
+    return (
+      <div className="table__container">
+        <Table bordered condensed>
+          <thead>
+            <tr>
+              <th>№</th>
+              <th>E-mail</th>
+              <th>Approve</th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.state.table_body}
+          </tbody>
+        </Table>
+      </div>
+    )
+  }
+
+  handleChange = (event) => {
+    for (let i = 0; i < this.state.table_body.length; i++) {
+      let each = this.state.table_body[i]
+      if (each.key === event.target.getAttribute('index')) {
+        let email = each.props.children[1].props.children
+
+        fetch(`api/approveUser?email=${email}`, {
+          accept: "application/json",
+          credentials: "include"
+        }).then((response) => {
+          if (response.status >= 200 && response.status < 300) {
+            this
+              .state
+              .table_body
+              .splice(i, 1)
+            this.setState({
+              users_in_table: --this.state.users_in_table
+            })
+            this.setState({table_body: this.state.table_body})
+          }
+        })
+      }
     }
 
-    render() {
-        return (
-    <Table striped bordered condensed hover style={this.style}>
-    </Table>
+  }
+
+  renderTableRow = (email) => {
+    this.setState({
+      users_in_table: ++this.state.users_in_table
+    })
+    ++keyIter
+    console.log(keyIter)
+    return (
+      <tr key={keyIter}>
+        <td>{this.state.users_in_table}</td>
+        <td>{email}</td>
+        <td><Button onClick={this.handleChange} index={keyIter}/></td>
+      </tr>
     )
   }
 }
