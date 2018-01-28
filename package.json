@@ -5,18 +5,18 @@
   "dependencies": {
     "babel-core": "6.14.0",
     "base-64": "^0.1.0",
-    "connect-mongo": "^2.0.0",
+    "connect-mongo": "^2.0.1",
     "cookie-parser": "^1.4.3",
+    "eslint": "^4.16.0",
     "express": "4.13.3",
     "express-fileupload": "^0.3.0",
     "express-session": "^1.15.6",
     "fs": "0.0.2",
     "graceful-fs": "^4.1.11",
-    "husky": "^0.14.3",
     "lint-staged": "^4.3.0",
     "minimatch": "^3.0.4",
-    "mongodb": "^2.2.33",
-    "prettier": "^1.7.4",
+    "mongodb": "^2.2.34",
+    "prettier": "^1.10.2",
     "secure-random": "^1.1.1",
     "sha1": "^1.1.1",
     "sql.js": "0.3.2"
@@ -30,10 +30,7 @@
     "precommit": "lint-staged"
   },
   "devDependencies": {
-    "concurrently": "^3.5.0",
-    "eslint": "^3.19.0",
-    "eslint-config-airbnb": "14.1.0",
-    "eslint-config-google": "^0.9.1",
+    "concurrently": "^3.5.1",
     "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-jsx-a11y": "4.0.0",
     "eslint-plugin-react": "6.9.0"

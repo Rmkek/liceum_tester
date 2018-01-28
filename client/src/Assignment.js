@@ -1,30 +1,62 @@
 import React, { Component } from 'react';
-import {Col, Row } from 'react-bootstrap';
+import {Col, Row, Table} from 'react-bootstrap';
+import * as ASSIGNMENT_CONSTANTS from './Backend_answers/AssignmentConstants'
 
 class Assignment extends Component {
-    constructor() {
-        super()
+    constructor(props) {
+        super(props)
 
-        let style = {
-            position: 'absolute',
-            background: 'white'
+        this.state = {
+            assignments: null
         }
-    }
 
+        console.log(this.props.location.pathname)
+        let assignment_pack_name = this.props.location.pathname.substring(this.props.location.pathname.lastIndexOf('/') + 1,
+                                                                          this.props.location.pathname.length)
+        
+        fetch(`http://localhost:3000/api/getAssignmentPack?name=${assignment_pack_name}`, {
+            accept: "application/json",
+            credentials: 'include'
+        })
+        .then((response) => response.json())
+        .then((json) => {
+            if (json.error && json.error === ASSIGNMENT_CONSTANTS.NO_SUCH_ASSIGNMENT) {
+                console.log('no such assignment')
+                //TODO add proper error showcase
+            }
+
+            if (json) {
+                this.setState({assignments: json.tasks})
+                console.log(this.state)
+            }
+            // GET_ASSIGNMENT_CONSTS.NO_SUCH_ASSIGNMENT
+        })
+    }
+    //TODO: customize with css
+    
     render() {
-        return (
-            <Col xs={12} md={12} style={this.style}>
-                <Row>
-                <form ref='uploadForm' 
-                      id='uploadForm' 
-                      action='http://localhost:3001/api/upload-code/' 
-                      method='POST' 
-                      encType="multipart/form-data">
-                    <input type="file" name="sampleFile" />
-                    <input type='submit' value='Upload!' />
-                </form>     
-                </Row>
-            </Col>
+        return (this.state.assignments != null ? 
+        <Col xs={6}>
+            <Row>
+                <Table bordered striped hover condensed>
+                    <thead style={{'backgroundColor':'#f9f9f9'}}>
+                        <tr>
+                            <th>Assignment</th>
+                            <th>Send solution</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>                        
+                            {this.state.assignments.map(element =>
+                                 <tr>
+                                 <td key={element.name}>{element.name}</td>
+                                 <td><a href=''>TEST</a></td>
+                                 </tr>                        
+                            )}
+                    </tbody>
+                </Table>
+            </Row>
+        </Col> : ''
         )
   }
 }

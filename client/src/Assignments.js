@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { Thumbnail, Col, Row } from 'react-bootstrap';
 import './Assignments.css'
 import { Redirect } from 'react-router-dom'
-import * as ASSIGNMENT_CONSTANTS from './Backend_answers/AssignmentConstants'
 
 let assignment_link = '', assignment_pack_name = ''
 class Assignments extends Component {
@@ -13,8 +12,10 @@ class Assignments extends Component {
             assignments: '',
             keyIter: -1,
             assignment_clicked: false,
-            assignment_pack_name: ''
+            assignment_pack_name: '',
+            assignments_json: {}
         }
+        // rework it like in admin.js
     }
 
     componentDidMount = () => {
@@ -24,10 +25,12 @@ class Assignments extends Component {
         })
         .then((response) => response.json())
         .then((json) => {
+            console.log('API/ASSIGNMENTS: ', json)
             let assignmentArray = []
             json.assignments.forEach(element => {
                 assignmentArray.push(this.renderAssignment(element))
             });
+            this.setState({assignments_json: json})
             this.setState({assignments: assignmentArray})
         })
     }
@@ -49,24 +52,8 @@ class Assignments extends Component {
             })
         }
 
-        fetch(`api/getAssignmentPack?name=${assignment_pack_name}`, {
-            accept: "application/json",
-            credentials: 'include'
-        })
-        .then((response) => response.json())
-        .then((json) => {
-            console.log('JSON:', json)
-            if (json.error && json.error === ASSIGNMENT_CONSTANTS.NO_SUCH_ASSIGNMENT) {
-                console.log('no such assignment')
-                //TODO add proper error showcase
-            }
-            if (json.pdfPath) {
-                assignment_link = '/assignment/' + encodeURI(assignment_pack_name)
-                    this.setState({assignment_clicked: true})
-            }
-            // GET_ASSIGNMENT_CONSTS.NO_SUCH_ASSIGNMENT
-        })
-        
+        assignment_link = '/assignment/' + encodeURI(assignment_pack_name)
+        this.setState({assignment_clicked: true})
     }
 
     renderAssignment = (elem) => {
@@ -88,8 +75,10 @@ class Assignments extends Component {
                 <Row>
                     {this.state.assignments}
                 </Row>
-            </Col> : (<Redirect to={assignment_link} />)
-        )
+            </Col> : (<Redirect to={{
+                pathname: assignment_link,
+                state: {assignments: this.state.assignments_json.assignments}
+            }} />))
   }
 }
 

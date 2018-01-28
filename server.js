@@ -67,6 +67,7 @@ app.use((req, res, next) => {
 })
 
 // Express only serves static assets in production
+// TODO: think about production and serving static files.
 if (process.env.NODE_ENV === "production") {
   app.use(express.static("client/build"));
 }
@@ -93,7 +94,6 @@ app.get('/api/getAssignmentPack', (req, res) => {
       nameIsFound = true
 
       let answer = {}
-      answer.pdfPath = elem.pdfPath
       console.log('filepath: client/src/Assignments/' + elem.tasks)
       fs.readFile(`client/src/Assignments/${elem.tasks}`, 'utf8', (err, contents) => {
         answer.tasks = JSON.parse(contents).tasks

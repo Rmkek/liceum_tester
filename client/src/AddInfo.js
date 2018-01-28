@@ -7,7 +7,7 @@ import './AddInfo.css'
 class AddInfo extends Component {
     constructor(props) {
         super(props);
-        
+        // TODO: add a loading bar when waiting for redirect if additional info already added.
         this.state = {
             full_name: '',
             modal_shown: false,
