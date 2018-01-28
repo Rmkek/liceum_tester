@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import {Col, Row, Table} from 'react-bootstrap';
 import * as ASSIGNMENT_CONSTANTS from './Backend_answers/AssignmentConstants'
+import './Assignment.css'
 
 class Assignment extends Component {
     constructor(props) {
@@ -10,7 +11,6 @@ class Assignment extends Component {
             assignments: null
         }
 
-        console.log(this.props.location.pathname)
         let assignment_pack_name = this.props.location.pathname.substring(this.props.location.pathname.lastIndexOf('/') + 1,
                                                                           this.props.location.pathname.length)
         
@@ -39,14 +39,14 @@ class Assignment extends Component {
         <Col xs={6}>
             <Row>
                 <Table bordered striped hover condensed>
-                    <thead style={{'backgroundColor':'#f9f9f9'}}>
+                    <thead className='table_color_fix'>
                         <tr>
                             <th>Assignment</th>
                             <th>Send solution</th>
                         </tr>
                     </thead>
 
-                    <tbody>                        
+                    <tbody className='table_color_fix'  >                        
                             {this.state.assignments.map(element =>
                                  <tr>
                                  <td key={element.name}>{element.name}</td>
