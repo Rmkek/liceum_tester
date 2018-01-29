@@ -63,6 +63,7 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, OPTIONS');
   next()
 })
 
@@ -251,13 +252,14 @@ app.get('/api/add-info', (req, res) => {
   })
 
 app.post('/api/upload-code', (req, res) => {
+  // Get what user this file is coming from and what task it is supposed to solve
   if (!req.files) {
     return res.status(403).send('No files were uploaded.')
   }
 
   let file = req.files.sampleFile
 
-  file.mv('/home/rmk/file.cpp', function(err) {
+  file.mv('/home/rmk/Desktop/liceum_tester/testing_folder/file.cpp', function(err) {
     res.status(200).send('File uploaded!');
   });
 
