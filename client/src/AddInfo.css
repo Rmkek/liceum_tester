@@ -1,22 +1,21 @@
 .info__container {
-    position: relative;
+  position: relative;
 }
 
 .info__grade__select {
-    float: right;
-    width: 100px;
+  float: right;
+  width: 100px;
 }
 
 .info__grade__label {
-    margin-top: 1%;
+  margin-top: 1%;
 }
 
 .add-info__fullname {
-    width: 60%;
-    float: right;
+  width: 60%;
+  float: right;
 }
 
-
-.info__grade__link { 
-    color: white;
+.info__grade__link {
+  color: white;
 }

@@ -28,12 +28,11 @@
   box-shadow: 0 0 20px white;
   text-align: center;
   margin-top: 25em;
-  background-color: rgb(0,239,53);
+  background-color: rgb(0, 239, 53);
   /* background-color: rgb(160, 206, 242); */
   padding-bottom: 1em;
   padding-top: 1em;
 }
-
 
 .footer {
   position: absolute;
@@ -42,34 +41,27 @@
   bottom: 0;
   font-size: 20px;
   color: white;
-  font-family: 'Merriweather', serif;  
+  font-family: "Merriweather", serif;
 }
 
-@keyframes heartbeat
-{
-  0%
-  {
-    transform: scale( 1.5 );
+@keyframes heartbeat {
+  0% {
+    transform: scale(1.5);
   }
-  20%
-  {
-    transform: scale( 2 );
+  20% {
+    transform: scale(2);
   }
-  40%
-  {
-    transform: scale( 1.5 );
+  40% {
+    transform: scale(1.5);
   }
-  60%
-  {
-    transform: scale( 2 );
+  60% {
+    transform: scale(2);
   }
-  80%
-  {
-    transform: scale( 1.5 );
+  80% {
+    transform: scale(1.5);
   }
-  100%
-  {
-    transform: scale( 1.5 );
+  100% {
+    transform: scale(1.5);
   }
 }
 

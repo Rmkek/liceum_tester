@@ -1,10 +1,10 @@
 .assignment__thumbnail {
-    margin-top: 5%;
-    text-align: center;
-    font-family: 'Nunito', sans-serif;
-    cursor: pointer;
+  margin-top: 5%;
+  text-align: center;
+  font-family: "Nunito", sans-serif;
+  cursor: pointer;
 }
 
 .assignment__thumbnail:hover {
-    border-width: 5px;
+  border-width: 5px;
 }
