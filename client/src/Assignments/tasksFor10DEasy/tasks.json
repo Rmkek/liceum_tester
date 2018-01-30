@@ -1,19 +1,19 @@
 {
-  "tasks": [
-    {
-      "name": "Vova"
-    },
-    {
-      "name": "Kirusha"
-    },
-    {
-      "name": "Matrix"
-    },
-    {
-      "name": "Lesha"
-    },
-    {
-      "name": "Strings"
-    }
-  ]
+    "tasks": [
+        {
+            "name": "Vova"
+        },
+        {
+            "name": "Kirusha"
+        },
+        {
+            "name": "Matrix"
+        },
+        {
+            "name": "Lesha"
+        },
+        {
+            "name": "Strings"
+        }
+    ]
 }

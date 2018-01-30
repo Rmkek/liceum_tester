@@ -8,6 +8,7 @@
     "base-64": "^0.1.0",
     "connect-mongo": "^2.0.1",
     "cookie-parser": "^1.4.3",
+    "esformatter-jsx": "^8.0.1",
     "eslint": "^4.16.0",
     "eslint-plugin-jsx": "0.0.2",
     "express": "4.13.3",

@@ -10,16 +10,16 @@ import registerServiceWorker from "./registerServiceWorker";
 
 //Link
 ReactDOM.render(
-  <Router>
-    <div>
-      <Route exact path="/" component={App} />
-      <Route exact path="/assignments" component={Assignments} />
-      <Route exact path="/admin" component={Admin} />
-      <Route exact path="/add-info" component={AddInfo} />
-      <Route path="/assignment" component={Assignment} />
-    </div>
-  </Router>,
-  document.getElementById("root")
+    <Router>
+        <div>
+            <Route exact path="/" component={App} />
+            <Route exact path="/assignments" component={Assignments} />
+            <Route exact path="/admin" component={Admin} />
+            <Route exact path="/add-info" component={AddInfo} />
+            <Route path="/assignment" component={Assignment} />
+        </div>
+    </Router>,
+    document.getElementById("root")
 );
 
 registerServiceWorker();
