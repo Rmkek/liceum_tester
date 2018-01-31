@@ -8,7 +8,6 @@ import Assignment from "./Assignment";
 import { BrowserRouter as Router, Route } from "react-router-dom";
 import registerServiceWorker from "./registerServiceWorker";
 
-//Link
 ReactDOM.render(
     <Router>
         <div>

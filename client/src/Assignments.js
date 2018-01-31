@@ -26,7 +26,6 @@ class Assignments extends Component {
         })
             .then(response => response.json())
             .then(json => {
-                console.log("API/ASSIGNMENTS: ", json);
                 let assignmentArray = [];
                 json.assignments.forEach(element => {
                     assignmentArray.push(this.renderAssignment(element));

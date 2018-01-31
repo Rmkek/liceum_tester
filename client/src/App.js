@@ -18,7 +18,6 @@ const base64 = require("base-64");
 class App extends Component {
     constructor() {
         super();
-        console.log("Fetching logged in request...");
         fetch(`api/checkForLogin`, {
             accept: "application/json",
             credentials: "include"

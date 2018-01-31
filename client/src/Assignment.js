@@ -59,7 +59,7 @@ class Assignment extends Component {
             return;
         }
 
-        formData.append("sampleFile", file);
+        formData.append("codeFile", file);
         console.log(formData);
         fetch("http://localhost:3001/api/upload-code", {
             method: "POST",

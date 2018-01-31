@@ -1,2 +1,2 @@
 // Error
-export const NO_SUCH_ASSIGNMENT = 'NO_SUCH_ASSIGNMENT'
+export const NO_SUCH_ASSIGNMENT = "NO_SUCH_ASSIGNMENT";

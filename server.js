@@ -11,33 +11,13 @@ const base64 = require("base-64");
 
 const app = express();
 
+const ASSIGNMENT_CONSTANTS = require("./client/src/Backend_answers/AssignmentConstants");
+const AUTH_CONSTANTS = require("./client/src/Backend_answers/AuthConstants");
+const INFO_CONSTANTS = require("./client/src/Backend_answers/InfoConstants");
+const APPROVE_USER_CONSTANTS = require("./client/src/Backend_answers/ApproveConstants");
+
 const MONGO_URL = "mongodb://localhost:27017/liceum_db";
 const MONGO_USERS_COLLECTION = "users";
-
-const AUTH_CONSTS = {
-    EMAIL_ALREADY_IN_DB: "EMAIL_ALREADY_IN_DB",
-    WRONG_EMAIL: "WRONG_EMAIL",
-    CANT_INSERT_USER_IN_COLLECTION: "CANT_INSERT_USER_IN_COLLECTION",
-    USER_ADDED_IN_DB: "USER_ADDED_IN_DB",
-    CORRECT_PASSWORD: "CORRECT_PASSWORD",
-    WRONG_PASSWORD: "WRONG_PASSWORD",
-    USER_IS_NOT_REGISTERED: "USER_IS_NOT_REGISTERED",
-    NOT_LOGGED_IN: "NOT_LOGGED_IN",
-    USER_IS_NOT_APPROVED: "USER_IS_NOT_APPROVED"
-};
-
-const GET_INFO_CONSTS = {
-    INFO_ADDED: "INFO_ADDED",
-    INFO_NOT_ADDED: "INFO_NOT_ADDED"
-};
-
-const APPROVE_CONSTS = {
-    USER_APPROVED: "USER_APPROVED"
-};
-
-const GET_ASSIGNMENT_CONSTS = {
-    NO_SUCH_ASSIGNMENT: "NO_SUCH_ASSIGNMENT"
-};
 
 let CONFIG_JSON_CONTENT = {};
 fs.readFile("client/src/Assignments/config.json", "utf8", (err, contents) => {
@@ -101,12 +81,12 @@ app.get("/api/assignments", (req, res) => {
 app.get("/api/getAssignmentPack", (req, res) => {
     let name = req.query.name;
     let nameIsFound = false;
+
     CONFIG_JSON_CONTENT.assignments.forEach(elem => {
         if (elem.name === name) {
             nameIsFound = true;
 
             let answer = {};
-            console.log("filepath: client/src/Assignments/" + elem.tasks);
             fs.readFile(
                 `client/src/Assignments/${elem.tasks}`,
                 "utf8",
@@ -121,7 +101,7 @@ app.get("/api/getAssignmentPack", (req, res) => {
 
     if (!nameIsFound) {
         res.status(400);
-        res.json({ error: GET_ASSIGNMENT_CONSTS.NO_SUCH_ASSIGNMENT });
+        res.json({ error: ASSIGNMENT_CONSTANTS.NO_SUCH_ASSIGNMENT });
     }
 });
 
@@ -132,14 +112,14 @@ app.get("/api/register", (req, res) => {
     let salt = saltArrayIntoString(secureRandom.randomArray(10));
     if (!validateEmail(req.query.email)) {
         res.status(400);
-        res.json({ error: AUTH_CONSTS.WRONG_EMAIL });
+        res.json({ error: AUTH_CONSTANTS.WRONG_EMAIL });
         return;
     }
 
     searchEmailInCollection(req.query.email, result => {
         if (result.length > 0) {
             res.status(400);
-            res.json({ error: AUTH_CONSTS.EMAIL_ALREADY_IN_DB });
+            res.json({ error: AUTH_CONSTANTS.EMAIL_ALREADY_IN_DB });
             return;
         } else {
             let user = {
@@ -151,11 +131,11 @@ app.get("/api/register", (req, res) => {
             addUserIntoCollection(user, result => {
                 if (result == 1) {
                     res.status(200);
-                    res.json({ success: AUTH_CONSTS.USER_ADDED_IN_DB });
+                    res.json({ success: AUTH_CONSTANTS.USER_ADDED_IN_DB });
                 } else {
                     res.status(400);
                     res.json({
-                        error: AUTH_CONSTS.CANT_INSERT_USER_IN_COLLECTION
+                        error: AUTH_CONSTANTS.CANT_INSERT_USER_IN_COLLECTION
                     });
                 }
             });
@@ -164,16 +144,15 @@ app.get("/api/register", (req, res) => {
 });
 
 app.get("/api/checkForLogin", (req, res) => {
-    console.log("Got request /api/checkForLogin, cookie: ", req.session);
     if (req.session !== undefined && req.session.isLoggedIn) {
         req.session.touch();
         res.status(200);
-        res.json({ success: AUTH_CONSTS.CORRECT_PASSWORD });
+        res.json({ success: AUTH_CONSTANTS.CORRECT_PASSWORD });
         return;
     } else {
         req.session.isLoggedIn = false;
         res.status(200);
-        res.json({ success: AUTH_CONSTS.NOT_LOGGED_IN });
+        res.json({ success: AUTH_CONSTANTS.NOT_LOGGED_IN });
     }
 });
 
@@ -181,13 +160,14 @@ app.get("/api/approveUser", (req, res) => {
     //TODO: check for user being admin
     approveUser(req.query, result => {
         res.status(200);
-        res.json({ success: APPROVE_CONSTS.USER_APPROVED });
+        res.json({ success: APPROVE_USER_CONSTANTS.USER_APPROVED });
     });
 });
 
 app.get("/api/auth", (req, res) => {
     req.query.email = base64.decode(req.query.email).toLowerCase();
-    pass = base64.decode(req.query.pass);
+    let pass = base64.decode(req.query.pass);
+
     searchEmailInCollection(req.query.email, result => {
         if (result.length > 0) {
             console.log("Found users for authentification: ", result);
@@ -195,7 +175,7 @@ app.get("/api/auth", (req, res) => {
             pass_salt = result[0].salt;
             if (!result[0].isApproved) {
                 res.status(400);
-                res.json({ error: AUTH_CONSTS.USER_IS_NOT_APPROVED });
+                res.json({ error: AUTH_CONSTANTS.USER_IS_NOT_APPROVED });
                 return;
             }
 
@@ -203,14 +183,14 @@ app.get("/api/auth", (req, res) => {
                 req.session.isLoggedIn = true;
                 req.session.email = req.query.email;
                 res.status(200);
-                res.json({ success: AUTH_CONSTS.CORRECT_PASSWORD });
+                res.json({ success: AUTH_CONSTANTS.CORRECT_PASSWORD });
             } else {
                 res.status(400);
-                res.json({ error: AUTH_CONSTS.WRONG_PASSWORD });
+                res.json({ error: AUTH_CONSTANTS.WRONG_PASSWORD });
             }
         } else {
             res.status(400);
-            res.json({ error: AUTH_CONSTS.USER_IS_NOT_REGISTERED });
+            res.json({ error: AUTH_CONSTANTS.USER_IS_NOT_REGISTERED });
         }
     });
 });
@@ -235,9 +215,9 @@ app.get("/api/getNotApprovedUsers", (req, res) => {
             .find(query)
             .toArray(function(err, result) {
                 if (err) throw err;
+
                 res.status(200);
                 res.json({ success: result });
-                console.log(result);
                 db.close();
             });
     });
@@ -251,7 +231,6 @@ app.get("/api/add-info", (req, res) => {
     let letter = req.query.letter;
 
     addInfo(req.session.email, name, grade, letter, result => {
-        console.log("Adding info about user, ok: ", result.result.ok);
         res.status(200);
         res.json({ success: result.result.ok });
         return;
@@ -266,7 +245,7 @@ app.post("/api/upload-code", (req, res) => {
         return res.status(403).send("No files were uploaded.");
     }
 
-    let file = req.files.sampleFile;
+    let file = req.files.codeFile;
 
     file.mv("/home/rmk/Desktop/liceum_tester/testing_folder/file.cpp", function(
         err
@@ -278,7 +257,7 @@ app.post("/api/upload-code", (req, res) => {
 app.get("/api/get-info", (req, res) => {
     searchEmailInCollection(req.session.email, result => {
         if (result[0].additional_info === undefined) {
-            res.status(200);
+            res.status(400);
             res.json({ success: GET_INFO_CONSTS.INFO_NOT_ADDED });
         } else {
             res.status(200);
