@@ -1,2 +1,5 @@
-//Success
-export const USER_APPROVED = "USER_APPROVED";
+let APPROVED_CONSTANTS = {
+    USER_APPROVED: "USER_APPROVED"
+};
+
+module.exports = APPROVED_CONSTANTS;

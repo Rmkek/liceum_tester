@@ -1,2 +1,6 @@
-export const INFO_ADDED = "INFO_ADDED";
-export const INFO_NOT_ADDED = "INFO_NOT_ADDED";
+let INFO_CONSTANTS = {
+    INFO_ADDED: "INFO_ADDED",
+    INFO_NOT_ADDED: "INFO_NOT_ADDED"
+};
+
+module.exports = INFO_CONSTANTS;
