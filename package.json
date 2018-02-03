@@ -6,6 +6,7 @@
     "babel-core": "6.14.0",
     "babel-eslint": "^8.2.1",
     "base-64": "^0.1.0",
+    "body-parser": "^1.18.2",
     "connect-mongo": "^2.0.1",
     "cookie-parser": "^1.4.3",
     "esformatter-jsx": "^8.0.1",
@@ -22,7 +23,8 @@
     "prettier": "^1.10.2",
     "secure-random": "^1.1.1",
     "sha1": "^1.1.1",
-    "sql.js": "0.3.2"
+    "sql.js": "0.3.2",
+    "uuid": "^3.2.1"
   },
   "scripts": {
     "start": "concurrently \"npm run server\" \"npm run client\"",

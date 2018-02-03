@@ -1,0 +1,24 @@
+{
+  "assignments": [
+    {
+      "name": "Vova",
+      "tests": ["1"]
+    },
+    {
+      "name": "Kirusha",
+      "tests": ["2"]
+    },
+    {
+      "name": "Matrix",
+      "tests": ["3"]
+    },
+    {
+      "name": "Lesha",
+      "tests": ["4"]
+    },
+    {
+      "name": "Strings",
+      "tests": ["5"]
+    }
+  ]
+}

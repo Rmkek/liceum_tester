@@ -16,7 +16,6 @@ class Assignments extends Component {
             assignment_pack_name: "",
             assignments_json: {}
         };
-        // rework it like in admin.js
     }
 
     componentDidMount = () => {
