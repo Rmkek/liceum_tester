@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import ReactDOM from 'react-dom';
+import ReactDOM from "react-dom";
 import {
   Col,
   Row,
@@ -48,19 +48,22 @@ class Assignment extends Component {
 
         if (json) {
           this.setState({ assignments: json.assignments });
-
         }
         // GET_ASSIGNMENT_CONSTS.NO_SUCH_ASSIGNMENT
       });
   }
 
   onSendClick = e => {
-    e.persist()
+    e.persist();
     let file = document
       .getElementById(`uploadForm-${e.target.getAttribute("id")}`)
       .getElementsByClassName("upload__file")[0].files[0];
     let formData = new FormData();
-
+    let testsStatusDOMElement = document.getElementById(
+      `tests_status-${e.target.getAttribute("id")}`
+    );
+    let testingLabel = <Label bsStyle="primary">Testing...</Label>;
+    ReactDOM.render(testingLabel, testsStatusDOMElement);
     if (file === undefined) {
       return;
     }
@@ -72,20 +75,33 @@ class Assignment extends Component {
       }&assignment=${e.target.getAttribute("id")}`,
       {
         method: "POST",
+        credentials: "include",
         body: formData
       }
-    ).then(resp => resp.json())
-     .then(json => {
+    )
+      .then(resp => resp.json())
+      .then(json => {
         switch (json) {
           case CODE_TESTING_CONSTANTS.TESTS_PASSED:
-            let testsStatusDOMElement = document.getElementById(`tests_status-${e.target.getAttribute("id")}`)
-            let test = <Label style={{fontSize: '100%'}} bsStyle="success">Success</Label>; // todo: add styling
-            ReactDOM.render(test, testsStatusDOMElement)
+            let successLabel = <Label bsStyle="success">Success</Label>;
+            ReactDOM.render(successLabel, testsStatusDOMElement);
+            break;
+          case CODE_TESTING_CONSTANTS.TESTS_FAILED:
+            let warningLabel = <Label bsStyle="warning">Tests failed</Label>;
+            ReactDOM.render(warningLabel, testsStatusDOMElement);
+            break;
+          case CODE_TESTING_CONSTANTS.NO_FILES_UPLOADED:
+            let uploadWarningLabel = (
+              <Label bsStyle="warning">No files were uploaded.</Label>
+            );
+            ReactDOM.render(uploadWarningLabel, testsStatusDOMElement);
             break;
           default:
-            console.log('Default case happened (this is bad probably)');
+            let errorLabel = <Label bsStyle="danger">SERVER ERROR</Label>; // todo: add styling
+            ReactDOM.render(errorLabel, testsStatusDOMElement);
+            console.log("Default case happened (this is bad probably)");
         }
-     })
+      });
   };
 
   render() {

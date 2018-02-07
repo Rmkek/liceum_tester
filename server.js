@@ -20,9 +20,10 @@ const ASSIGNMENT_CONSTANTS = require("./client/src/Backend_answers/AssignmentCon
 const AUTH_CONSTANTS = require("./client/src/Backend_answers/AuthConstants");
 const INFO_CONSTANTS = require("./client/src/Backend_answers/InfoConstants");
 const APPROVE_USER_CONSTANTS = require("./client/src/Backend_answers/ApproveConstants");
-const CODE_TESTING_CONSTANTS = require("./client/src/Backend_answers/CodeTestingConstants")
+const CODE_TESTING_CONSTANTS = require("./client/src/Backend_answers/CodeTestingConstants");
 
 const MONGO_URL = "mongodb://localhost:27017/liceum_db";
+const MONGO_DATABASE_NAME = "liceum_db";
 const MONGO_USERS_COLLECTION = "users";
 
 const CODE_SAVING_DIRECTORY = __dirname + "/testing_folder";
@@ -33,12 +34,12 @@ fs.readFile(`${ASSIGNMENTS_DIRECTORY}/config.json`, "utf8", (err, contents) => {
   ASSIGNMENTS_CONFIGURATION = JSON.parse(contents);
 });
 
-
 app.set("port", process.env.PORT || 3001);
 
 app.use(
   session({
-    secret: "laseghasAHSFJAb3m253JlakLAOSL@*%T*#Y(Y@&AKnmxcoihaerarkjlppoixghdjli;o",
+    secret:
+      "laseghasAHSFJAb3m253JlakLAOSL@*%T*#Y(Y@&AKnmxcoihaerarkjlppoixghdjli;o",
     cookie: {
       maxAge: 600000,
       httpOnly: false
@@ -54,9 +55,12 @@ app.use(fileUpload());
 app.use(bodyParser.json());
 
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Origin", "http://localhost:3000");
   res.header("Access-Control-Allow-Credentials", "true");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
   res.header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
   next();
 });
@@ -69,21 +73,23 @@ if (process.env.NODE_ENV === "production") {
 
 app.get("/assignments", (req, res) => {
   req.session.touch();
+  res.next();
 });
 
 app.get("/api/assignments", (req, res) => {
-    let answer = {
-      assignments: []
-    };
-    ASSIGNMENTS_CONFIGURATION.assignmentPacks.forEach(e => {
-      answer.assignments.push({
-        category: e.category,
-        name: e.name
-      });
-    });
+  let answer = {
+    assignments: []
+  };
 
-    res.status(200);
-    res.json(answer);
+  ASSIGNMENTS_CONFIGURATION.assignmentPacks.forEach(e => {
+    answer.assignments.push({
+      category: e.category,
+      name: e.name
+    });
+  });
+
+  res.status(200);
+  res.json(answer);
 });
 
 app.get("/api/getAssignmentPack", (req, res) => {
@@ -95,15 +101,19 @@ app.get("/api/getAssignmentPack", (req, res) => {
       nameIsFound = true;
 
       let answer = { assignments: [] };
-      fs.readFile(`${ASSIGNMENTS_DIRECTORY}${elem.tasks}`, "utf8", (err, contents) => {
-        JSON.parse(contents).assignments.forEach(e => {
-          answer.assignments.push({
-            name: e.name
+      fs.readFile(
+        `${ASSIGNMENTS_DIRECTORY}${elem.tasks}`,
+        "utf8",
+        (err, contents) => {
+          JSON.parse(contents).assignments.forEach(e => {
+            answer.assignments.push({
+              name: e.name
+            });
           });
-        });
-        res.status(200);
-        res.json(answer);
-      });
+          res.status(200);
+          res.json(answer);
+        }
+      );
     }
   });
 
@@ -134,10 +144,11 @@ app.get("/api/register", (req, res) => {
         email: req.query.email,
         pass: sha1(salt + req.query.pass),
         salt: salt,
-        isApproved: false
+        isApproved: false,
+        finishedAssignments: []
       };
       addUserIntoCollection(user, result => {
-        if (result == 1) {
+        if (result === 1) {
           res.status(200);
           res.json({ success: AUTH_CONSTANTS.USER_ADDED_IN_DB });
         } else {
@@ -179,15 +190,15 @@ app.get("/api/auth", (req, res) => {
   searchEmailInCollection(req.query.email, result => {
     if (result.length > 0) {
       console.log("Found users for authentification: ", result);
-      pass_hash = result[0].pass;
-      pass_salt = result[0].salt;
+      let pass_hash = result[0].pass;
+      let pass_salt = result[0].salt;
       if (!result[0].isApproved) {
         res.status(400);
         res.json({ error: AUTH_CONSTANTS.USER_IS_NOT_APPROVED });
         return;
       }
 
-      if (sha1(pass_salt + pass) == pass_hash) {
+      if (sha1(pass_salt + pass) === pass_hash) {
         req.session.isLoggedIn = true;
         req.session.email = req.query.email;
         res.status(200);
@@ -215,10 +226,14 @@ app.get("/api/getNotApprovedUsers", (req, res) => {
   console.log("Got request on api/getNotApprovedUsers");
   MongoClient.connect(MONGO_URL, function(err, db) {
     if (err) throw err;
+
     let query = {
       isApproved: false
     };
-    db
+
+    const database = db.db(MONGO_DATABASE_NAME);
+
+    database
       .collection(MONGO_USERS_COLLECTION)
       .find(query)
       .toArray(function(err, result) {
@@ -248,6 +263,7 @@ app.get("/api/add-info", (req, res) => {
 });
 
 app.post("/api/upload-code", (req, res) => {
+  req.session.touch();
   let assignmentPack = req.query.assignmentPack;
   let assignment = req.query.assignment;
 
@@ -259,14 +275,13 @@ app.post("/api/upload-code", (req, res) => {
 
   let file = req.files.codeFile;
   let codeFileName = uuid();
-  let errorHappened = false;
 
   file.mv(`${CODE_SAVING_DIRECTORY}/${codeFileName}.cpp`, function(err) {
     if (err) {
-      fs.unlink(`${CODE_SAVING_DIRECTORY}/${codeFileName}.cpp`, (err) => {
-        if (err) console.log('Error happened when deleting code: ', err)
+      fs.unlink(`${CODE_SAVING_DIRECTORY}/${codeFileName}.cpp`, err => {
+        if (err) console.log("Error happened when deleting code: ", err);
         console.log(`${codeFileName}.cpp was deleted`);
-      })
+      });
       res.status(500);
       res.json(CODE_TESTING_CONSTANTS.SERVER_ERROR);
       return;
@@ -276,71 +291,121 @@ app.post("/api/upload-code", (req, res) => {
       let elem = ASSIGNMENTS_CONFIGURATION.assignmentPacks[i];
 
       if (elem.name === assignmentPack) {
-        fs.readFile(`${ASSIGNMENTS_DIRECTORY}/${elem.tasks}`, "utf8", (err, contents) => {
-          if (err) {
-            fs.unlink(`${CODE_SAVING_DIRECTORY}/${codeFileName}.cpp`, (err) => {
-              if (err) console.log('Error happened when deleting code: ', err)
-              console.log(`${codeFileName}.cpp was deleted`);
-            })    
+        fs.readFile(
+          `${ASSIGNMENTS_DIRECTORY}/${elem.tasks}`,
+          "utf8",
+          (err, contents) => {
+            if (err) {
+              fs.unlink(`${CODE_SAVING_DIRECTORY}/${codeFileName}.cpp`, err => {
+                if (err)
+                  console.log("Error happened when deleting code: ", err);
+                console.log(`${codeFileName}.cpp was deleted`);
+              });
 
-            res.status(500);
-            res.json(CODE_TESTING_CONSTANTS.SERVER_ERROR);
-            return;
-          }
+              res.status(500);
+              res.json(CODE_TESTING_CONSTANTS.SERVER_ERROR);
+              return;
+            }
 
-          let content = JSON.parse(contents).assignments
-          
-          for (let j = 0; j < content.length; j++ ) {
-            let e = content[j]
+            let content = JSON.parse(contents).assignments;
 
-            if (e.name === assignment) {
-              let tests = e.tests;
+            for (let j = 0; j < content.length; j++) {
+              let e = content[j];
 
-              for (let k = 0; k < tests.length; k++) {
-                let test = tests[k];
-                let input_test_file = `${ASSIGNMENTS_DIRECTORY}${elem.tests}${test}_in.txt`;
-                let output_test_file = `${ASSIGNMENTS_DIRECTORY}${elem.tests}${test}_out.txt`;
-                
-                let input = fs.readFileSync(input_test_file, "utf8");
-                let expected_output = fs.readFileSync(output_test_file, "utf8");
-                let output = execSync(`cd ${CODE_SAVING_DIRECTORY} && g++ ${codeFileName}.cpp -o ${codeFileName}.out && ./${codeFileName}.out ${input}`, 'utf8').toString();
+              if (e.name === assignment) {
+                let tests = e.tests;
 
-                if (output !== expected_output) {
-                  console.log('stdout !== expected_output')
-                  
-                  fs.unlink(`${CODE_SAVING_DIRECTORY}/${codeFileName}.cpp`, (err) => {
-                    if (err) console.log('Error happened when deleting code: ', err)
-                    console.log(`${codeFileName}.cpp was deleted`);
-                  })
-                  fs.unlink(`${CODE_SAVING_DIRECTORY}/${codeFileName}.out`, (err) => {
-                    if (err) console.log('Error happened when deleting binary: ', err)
-                    console.log(`${codeFileName}.out was deleted`);
-                  })
+                for (let k = 0; k < tests.length; k++) {
+                  let test = tests[k];
+                  let input_test_file = `${ASSIGNMENTS_DIRECTORY}${
+                    elem.tests
+                  }${test}_in.txt`;
+                  let output_test_file = `${ASSIGNMENTS_DIRECTORY}${
+                    elem.tests
+                  }${test}_out.txt`;
 
-                  res.status(500)
-                  res.json(CODE_TESTING_CONSTANTS.SERVER_ERROR);
+                  let input = fs.readFileSync(input_test_file, "utf8");
+                  let expected_output = fs.readFileSync(
+                    output_test_file,
+                    "utf8"
+                  );
+                  let output = execSync(
+                    `cd ${CODE_SAVING_DIRECTORY} && g++ ${codeFileName}.cpp -o ${codeFileName}.out && ./${codeFileName}.out ${input}`,
+                    "utf8"
+                  ).toString();
+
+                  if (output !== expected_output) {
+                    console.log("stdout !== expected_output");
+
+                    fs.unlink(
+                      `${CODE_SAVING_DIRECTORY}/${codeFileName}.cpp`,
+                      err => {
+                        if (err)
+                          console.log(
+                            "Error happened when deleting code: ",
+                            err
+                          );
+                        console.log(`${codeFileName}.cpp was deleted`);
+                      }
+                    );
+                    fs.unlink(
+                      `${CODE_SAVING_DIRECTORY}/${codeFileName}.out`,
+                      err => {
+                        if (err)
+                          console.log(
+                            "Error happened when deleting binary: ",
+                            err
+                          );
+                        console.log(`${codeFileName}.out was deleted`);
+                      }
+                    );
+
+                    res.status(500);
+                    res.json(CODE_TESTING_CONSTANTS.SERVER_ERROR);
+                    return;
+                  }
+                }
+
+                if (!res.headersSent) {
+                  fs.unlink(
+                    `${CODE_SAVING_DIRECTORY}/${codeFileName}.cpp`,
+                    err => {
+                      if (err)
+                        console.log("Error happened when deleting code: ", err);
+                      console.log(`${codeFileName}.cpp was deleted`);
+                    }
+                  );
+                  fs.unlink(
+                    `${CODE_SAVING_DIRECTORY}/${codeFileName}.out`,
+                    err => {
+                      if (err)
+                        console.log(
+                          "Error happened when deleting binary: ",
+                          err
+                        );
+                      console.log(`${codeFileName}.out was deleted`);
+                    }
+                  );
+
+                  console.log("session: ", req.session);
+
+                  updateFinishedAssignment(
+                    req.session.email,
+                    assignmentPack,
+                    assignment,
+                    result => {
+                      console.log("added in db");
+                    }
+                  );
+
+                  res.status(200);
+                  res.json(CODE_TESTING_CONSTANTS.TESTS_PASSED);
                   return;
                 }
               }
-
-              if (!res.headersSent) {
-                fs.unlink(`${CODE_SAVING_DIRECTORY}/${codeFileName}.cpp`, (err) => {
-                  if (err) console.log('Error happened when deleting code: ', err)
-                  console.log(`${codeFileName}.cpp was deleted`);
-                })
-                fs.unlink(`${CODE_SAVING_DIRECTORY}/${codeFileName}.out`, (err) => {
-                  if (err) console.log('Error happened when deleting binary: ', err)
-                  console.log(`${codeFileName}.out was deleted`);
-                })
-
-                res.status(200)
-                res.json(CODE_TESTING_CONSTANTS.TESTS_PASSED)
-                //TODO: add this is database
-                return;
-              }
             }
           }
-        });
+        );
       }
     }
   });
@@ -367,7 +432,9 @@ app.disable("etag");
 const addUserIntoCollection = (user, cb) => {
   MongoClient.connect(MONGO_URL, (err, db) => {
     if (err) throw err;
-    db.collection(MONGO_USERS_COLLECTION).insertOne(user, (err, res) => {
+
+    const database = db.db(MONGO_DATABASE_NAME);
+    database.collection(MONGO_USERS_COLLECTION).insertOne(user, (err, res) => {
       if (err) throw err;
       console.log(`User: ${JSON.stringify(user)} inserted in database.`);
       cb(res.result.ok);
@@ -377,7 +444,7 @@ const addUserIntoCollection = (user, cb) => {
 };
 
 const validateEmail = email => {
-  var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  var re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return re.test(email);
 };
 
@@ -392,13 +459,88 @@ const saltArrayIntoString = array => {
 const searchEmailInCollection = (email, cb) => {
   MongoClient.connect(MONGO_URL, (err, db) => {
     if (err) throw err;
-    db
+
+    const database = db.db(MONGO_DATABASE_NAME);
+    database
       .collection(MONGO_USERS_COLLECTION)
       .find({ email: email })
       .toArray((err, result) => {
         if (err) throw err;
         db.close();
         cb(result);
+      });
+  });
+};
+
+const updateFinishedAssignment = (email, assignmentPack, assignment, cb) => {
+  console.log(assignmentPack);
+  console.log("Email from req.session: ", email);
+  MongoClient.connect(MONGO_URL, (err, db) => {
+    if (err) throw err;
+
+    const database = db.db(MONGO_DATABASE_NAME);
+    database
+      .collection(MONGO_USERS_COLLECTION)
+      .find({ email: email })
+      .toArray((err, result) => {
+        if (err) throw err;
+
+        if (result[0].finishedAssignments === undefined) {
+          let obj = {};
+          obj[assignmentPack] = new Array(assignment);
+
+          let newValue = {
+            $push: {
+              finishedAssignments: obj
+            }
+          };
+
+          database
+            .collection(MONGO_USERS_COLLECTION)
+            .updateOne({ email: email }, newValue, (err, result) => {
+              if (err) throw err;
+              db.close();
+              cb(result);
+            });
+        } else {
+          // TODO: mongoose.
+          let output = {};
+
+          result[0].finishedAssignments.forEach(e => {
+            if (
+              Object.keys(e)[0] === assignmentPack &&
+              !e[assignmentPack].includes(assignment)
+            ) {
+              e[assignmentPack].push(assignment);
+              output = e;
+            }
+          });
+
+          let newValue = {
+            $set: {
+              finishedAssignments: output
+            }
+          };
+
+          console.log(newValue.$set);
+          if (
+            Object.keys(newValue.$set.finishedAssignments).length === 0 &&
+            newValue.$set.finishedAssignments.constructor === Object
+          ) {
+            console.log("[ERROR] Assignment already added in set.");
+            db.close();
+            return;
+          }
+
+          database
+            .collection(MONGO_USERS_COLLECTION)
+            .updateOne({ email: email }, newValue, (err, result) => {
+              if (err) throw err;
+
+              db.close();
+              cb(result);
+            });
+        }
       });
   });
 };
@@ -411,11 +553,15 @@ const approveUser = (query, cb) => {
         isApproved: true
       }
     };
-    db.collection(MONGO_USERS_COLLECTION).updateOne(query, newValue, (err, result) => {
-      if (err) throw err;
-      db.close();
-      cb(result);
-    });
+    const database = db.db(MONGO_DATABASE_NAME);
+
+    database
+      .collection(MONGO_USERS_COLLECTION)
+      .updateOne(query, newValue, (err, result) => {
+        if (err) throw err;
+        db.close();
+        cb(result);
+      });
   });
 };
 
@@ -431,10 +577,14 @@ const addInfo = (query, name, grade, letter, cb) => {
         }
       }
     };
-    db.collection(MONGO_USERS_COLLECTION).updateOne({ email: query }, newValue, (err, result) => {
-      if (err) throw err;
-      db.close();
-      cb(result);
-    });
+    const database = db.db(MONGO_DATABASE_NAME);
+
+    database
+      .collection(MONGO_USERS_COLLECTION)
+      .updateOne({ email: query }, newValue, (err, result) => {
+        if (err) throw err;
+        db.close();
+        cb(result);
+      });
   });
 };
