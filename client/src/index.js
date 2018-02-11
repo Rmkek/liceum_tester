@@ -1,10 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import App from "./App";
-import Assignments from "./Assignments";
-import Admin from "./Admin";
-import AddInfo from "./AddInfo";
-import Assignment from "./Assignment";
+import App from "./App/App";
+import Assignments from "./Assignments/Assignments";
+import Admin from "./Admin/Admin";
+import AddInfo from "./AddInfo/AddInfo";
+import Assignment from "./Assignments/Assignment/Assignment";
 import { BrowserRouter as Router, Route } from "react-router-dom";
 import registerServiceWorker from "./registerServiceWorker";
 import "./bootstrap.css";

@@ -10,8 +10,8 @@ import {
   Input,
   Label
 } from "reactstrap";
-import * as ASSIGNMENT_CONSTANTS from "./Backend_answers/AssignmentConstants";
-import * as CODE_TESTING_CONSTANTS from "./Backend_answers/CodeTestingConstants";
+import * as ASSIGNMENT_CONSTANTS from "../../Backend_answers/AssignmentConstants";
+import * as CODE_TESTING_CONSTANTS from "../../Backend_answers/CodeTestingConstants";
 import "./Assignment.css";
 
 class Assignment extends Component {
@@ -43,13 +43,11 @@ class Assignment extends Component {
           json.error === ASSIGNMENT_CONSTANTS.NO_SUCH_ASSIGNMENT
         ) {
           console.log("no such assignment");
-          //TODO add proper error showcase
         }
 
         if (json) {
           this.setState({ assignments: json.assignments });
         }
-        // GET_ASSIGNMENT_CONSTS.NO_SUCH_ASSIGNMENT
       });
   }
 
@@ -69,8 +67,6 @@ class Assignment extends Component {
     }
 
     formData.append("codeFile", file);
-
-    // TODO: check if the task is already done
 
     fetch(
       `http://localhost:3001/api/upload-code?assignmentPack=${
@@ -100,7 +96,7 @@ class Assignment extends Component {
             ReactDOM.render(uploadWarningBadge, testsStatusDOMElement);
             break;
           default:
-            let errorBadge = <Badge color="danger">SERVER ERROR</Badge>; // todo: add styling
+            let errorBadge = <Badge color="danger">SERVER ERROR</Badge>;
             ReactDOM.render(errorBadge, testsStatusDOMElement);
             console.log("Default case happened (this is bad probably)");
         }

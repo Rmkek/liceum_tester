@@ -438,7 +438,6 @@ app.post("/api/upload-code", (req, res) => {
 
 app.get("/api/get-info", (req, res) => {
   searchEmailInCollection(req.session.email, result => {
-    // TODO: think about this code, there is some heisenbug
     if (result[0].additional_info === undefined) {
       res.status(200);
       res.json({ success: INFO_CONSTANTS.INFO_NOT_ADDED });
@@ -552,7 +551,7 @@ const updateFinishedAssignment = (email, assignmentPack, assignment, cb) => {
             newValue.$set.finishedAssignments.constructor === Object
           ) {
             // TODO: add an response if assignment is already added
-            console.log("[ERROR] Assignment already added in set.");
+            console.log("[DEBUG] Assignment already added in set.");
             db.close();
             return;
           }

@@ -14,8 +14,8 @@ import {
 } from "reactstrap";
 import "./App.css";
 import { Redirect } from "react-router-dom";
-import * as AUTH_CONSTANTS from "./Backend_answers/AuthConstants";
-const base64 = require("base-64"); // TODO: HTTPS
+import * as AUTH_CONSTANTS from "../Backend_answers/AuthConstants";
+const base64 = require("base-64");
 
 class App extends Component {
   constructor() {
@@ -45,7 +45,6 @@ class App extends Component {
 
     document.onkeypress = e => {
       if (e.keyCode === 13 && this.state.modal_shown) {
-        // Enter Keycode
         e.preventDefault();
         this.setState({ modal_shown: !this.state.modal_shown });
       } else if (

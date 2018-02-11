@@ -12,14 +12,12 @@ import {
   Label
 } from "reactstrap";
 import { Redirect } from "react-router-dom";
-import * as INFO_CONSTANTS from "./Backend_answers/InfoConstants";
+import * as INFO_CONSTANTS from "../Backend_answers/InfoConstants";
 import "./AddInfo.css";
 
 class AddInfo extends Component {
   constructor(props) {
     super(props);
-
-    // TODO: add a loading bar when waiting for redirect if additional info already added.
 
     this.state = {
       full_name: "",
@@ -45,7 +43,6 @@ class AddInfo extends Component {
 
     document.onkeypress = e => {
       if (e.keyCode === 13 && this.state.modal_shown) {
-        //Enter Keycode
         this.setState({ modal_shown: !this.state.modal_shown });
       } else if (e.keyCode === 13) {
         this.submitAdditionalInfo();
@@ -94,7 +91,6 @@ class AddInfo extends Component {
         });
     }
   };
-  //TODO: improve texts
 
   render() {
     return this.state.infoAdded ? (

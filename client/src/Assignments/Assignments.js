@@ -43,7 +43,6 @@ class Assignments extends Component {
     } else if (e.target.tagName === "H5") {
       assignment_pack_name = e.target.innerText;
     } else {
-      // this is bad
       this.state.assignments.forEach(elem => {
         if (
           elem.props.children.props.children[1].props.children ===
