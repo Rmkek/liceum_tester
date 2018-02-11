@@ -5,6 +5,6 @@
   cursor: pointer;
 }
 
-.assignment__thumbnail:hover {
-  border-width: 5px;
+.assignment__thumbnail-title {
+  font-size: 2rem;
 }

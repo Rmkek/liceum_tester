@@ -6,10 +6,10 @@ import {
   Table,
   Button,
   FormGroup,
-  FormControl,
-  ControlLabel,
+  Badge,
+  Input,
   Label
-} from "react-bootstrap";
+} from "reactstrap";
 import * as ASSIGNMENT_CONSTANTS from "./Backend_answers/AssignmentConstants";
 import * as CODE_TESTING_CONSTANTS from "./Backend_answers/CodeTestingConstants";
 import "./Assignment.css";
@@ -62,13 +62,16 @@ class Assignment extends Component {
     let testsStatusDOMElement = document.getElementById(
       `tests_status-${e.target.getAttribute("id")}`
     );
-    let testingLabel = <Label bsStyle="primary">Testing...</Label>;
-    ReactDOM.render(testingLabel, testsStatusDOMElement);
+    let testingBadge = <Badge color="secondary">Testing...</Badge>;
+    ReactDOM.render(testingBadge, testsStatusDOMElement);
     if (file === undefined) {
       return;
     }
 
     formData.append("codeFile", file);
+
+    // TODO: check if the task is already done
+
     fetch(
       `http://localhost:3001/api/upload-code?assignmentPack=${
         this.state.assignment_pack_name
@@ -83,22 +86,22 @@ class Assignment extends Component {
       .then(json => {
         switch (json) {
           case CODE_TESTING_CONSTANTS.TESTS_PASSED:
-            let successLabel = <Label bsStyle="success">Success</Label>;
-            ReactDOM.render(successLabel, testsStatusDOMElement);
+            let successBadge = <Badge color="success">Success</Badge>;
+            ReactDOM.render(successBadge, testsStatusDOMElement);
             break;
           case CODE_TESTING_CONSTANTS.TESTS_FAILED:
-            let warningLabel = <Label bsStyle="warning">Tests failed</Label>;
-            ReactDOM.render(warningLabel, testsStatusDOMElement);
+            let warningBadge = <Badge color="warning">Tests failed</Badge>;
+            ReactDOM.render(warningBadge, testsStatusDOMElement);
             break;
           case CODE_TESTING_CONSTANTS.NO_FILES_UPLOADED:
-            let uploadWarningLabel = (
-              <Label bsStyle="warning">No files were uploaded.</Label>
+            let uploadWarningBadge = (
+              <Badge color="warning">No files were uploaded.</Badge>
             );
-            ReactDOM.render(uploadWarningLabel, testsStatusDOMElement);
+            ReactDOM.render(uploadWarningBadge, testsStatusDOMElement);
             break;
           default:
-            let errorLabel = <Label bsStyle="danger">SERVER ERROR</Label>; // todo: add styling
-            ReactDOM.render(errorLabel, testsStatusDOMElement);
+            let errorBadge = <Badge color="danger">SERVER ERROR</Badge>; // todo: add styling
+            ReactDOM.render(errorBadge, testsStatusDOMElement);
             console.log("Default case happened (this is bad probably)");
         }
       });
@@ -108,8 +111,8 @@ class Assignment extends Component {
     return this.state.assignments != null ? (
       <Col xs={6}>
         <Row>
-          <Table bordered striped hover condensed>
-            <thead className="table_color_fix">
+          <Table>
+            <thead>
               <tr>
                 <th>Assignment</th>
                 <th>Send solution</th>
@@ -117,7 +120,7 @@ class Assignment extends Component {
               </tr>
             </thead>
 
-            <tbody className="table_color_fix">
+            <tbody>
               {this.state.assignments.map(element => (
                 <tr key={element.name}>
                   <td>{element.name}</td>
@@ -128,15 +131,15 @@ class Assignment extends Component {
                       method="POST"
                       encType="multipart/form-data"
                     >
-                      <FormGroup controlId="formControlsFile">
-                        <ControlLabel>Source code</ControlLabel>
-                        <FormControl
+                      <FormGroup>
+                        <Label for="upload__file-input">Source code</Label>
+                        <Input
+                          id="upload__file-input"
                           className="upload__file"
                           type="file"
                           name="sampleFile"
                         />
                         <Button
-                          bsStyle="primary"
                           className="button--send"
                           id={element.name}
                           onClick={this.onSendClick}
@@ -146,7 +149,13 @@ class Assignment extends Component {
                       </FormGroup>
                     </form>
                   </td>
-                  <td id={`tests_status-${element.name}`}>Not stated.</td>
+                  <td id={`tests_status-${element.name}`}>
+                    {element.solved === true ? (
+                      <Badge color="success">Solved</Badge>
+                    ) : (
+                      "Not solved."
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

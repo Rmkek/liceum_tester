@@ -40,7 +40,8 @@
   margin-right: 10px;
   bottom: 0;
   font-size: 20px;
-  color: white;
+  color: black;
+  letter-spacing: 0.5px;
   font-family: "Merriweather", serif;
 }
 
@@ -74,4 +75,8 @@
 
 #heart:hover {
   animation-play-state: running;
+}
+
+.form-container {
+  margin-top: 15em;
 }

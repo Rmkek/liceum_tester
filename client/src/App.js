@@ -3,23 +3,23 @@ import {
   Button,
   Col,
   Row,
-  ButtonToolbar,
-  FormControl,
   FormGroup,
-  ControlLabel,
   Form,
-  Modal
-} from "react-bootstrap";
+  Modal,
+  Label,
+  Input,
+  ModalHeader,
+  ModalBody,
+  ModalFooter
+} from "reactstrap";
 import "./App.css";
 import { Redirect } from "react-router-dom";
 import * as AUTH_CONSTANTS from "./Backend_answers/AuthConstants";
-const base64 = require("base-64");
+const base64 = require("base-64"); // TODO: HTTPS
 
 class App extends Component {
   constructor() {
     super();
-    console.log("document: ", document.getElementsByClassName("auth-email"));
-
     fetch(`api/checkForLogin`, {
       accept: "application/json",
       credentials: "include"
@@ -29,7 +29,7 @@ class App extends Component {
         if (resp.success === AUTH_CONSTANTS.NOT_LOGGED_IN) {
           console.log("Not logged in");
         } else {
-          this.setState({ logged_in: true });
+          this.setState({ redirect: true });
         }
       });
 
@@ -40,7 +40,7 @@ class App extends Component {
       modal_title: "",
       modal_text: "",
       vk_link: "",
-      logged_in: false
+      redirect: false
     };
 
     document.onkeypress = e => {
@@ -96,7 +96,7 @@ class App extends Component {
       ).then(response => {
         if (response.status >= 200 && response.status < 300) {
           console.log("Successfully logged in.");
-          this.setState({ logged_in: true });
+          this.setState({ redirect: true });
           return response;
         } else {
           response.json().then(response => {
@@ -181,7 +181,7 @@ class App extends Component {
                 this.setState({
                   modal_title: "Error",
                   modal_text:
-                    "Email is already listed in database. Wait for teacher to approve it."
+                    "Email is already listed in database. Wait for teacher to approve it, or (if you have been approved), try pressing Log in button."
                 });
                 break;
               case AUTH_CONSTANTS.CANT_INSERT_USER_IN_COLLECTION:
@@ -224,83 +224,83 @@ class App extends Component {
   };
 
   render() {
-    return !this.state.logged_in ? (
-      <div className="auth-page">
+    if (this.state.redirect) {
+      console.log("in redirect, email:", this.state.email_value);
+      return (
+        <Redirect
+          to={{
+            pathname: "/add-info",
+            state: { email: this.state.email_value }
+          }}
+        />
+      );
+    }
+
+    return (
+      <div>
         <div className="modal-container">
-          <Modal
-            show={this.state.modal_shown}
-            onHide={this.closeModal}
-            container={this}
-            aria-labelledby="contained-modal-title"
-          >
-            <Modal.Header closeButton>
-              <Modal.Title id="contained-modal-title">
-                {this.state.modal_title}
-              </Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
+          <Modal isOpen={this.state.modal_shown} onClick={this.closeModal}>
+            <ModalHeader toggle={this.closeModal}>
+              {this.state.modal_title}
+            </ModalHeader>
+            <ModalBody>
               {this.state.modal_text}
               {this.state.vk_link}
-            </Modal.Body>
-            <Modal.Footer>
+            </ModalBody>
+            <ModalFooter>
               <Button onClick={this.closeModal}>Close</Button>
-            </Modal.Footer>
+            </ModalFooter>
           </Modal>
         </div>
-        <Col xs={12} md={12}>
+        <Col xs="3" md="12">
           <Row>
             <Col
-              lg={2}
-              lgOffset={5}
-              md={4}
-              mdOffset={4}
-              xs={4}
-              xsOffset={4}
-              className="auth-container"
+              lg={{ size: 2, offset: 5 }}
+              md={{ size: 4, offset: 4 }}
+              xs={{ size: 4, offset: 4 }}
             >
-              <Form>
-                <FormGroup
-                  className="auth-email"
-                  controlId="formBasicText"
-                  validationState={this.getEmailValidationState()}
-                >
-                  <ControlLabel> Enter your E-mail address: </ControlLabel>
-                  <FormControl
+              <Form className="form-container">
+                <FormGroup>
+                  <Label for="email_input"> Enter your E-mail address: </Label>
+                  <Input
+                    id="email_input"
                     type="email"
+                    name="email"
                     value={this.state.email_value}
                     onChange={this.handleEmailChange}
                     placeholder="Your e-mail"
                   />
-                  <FormControl.Feedback />
+                  {/* <FormControl.Feedback /> */}
                 </FormGroup>
-                <FormGroup className="auth-password" controlId="formBasicText">
-                  <ControlLabel> Enter your password: </ControlLabel>
-                  <FormControl
+                <FormGroup>
+                  <Label for="password_input"> Enter your password: </Label>
+                  <Input
                     type="password"
+                    name="password"
                     value={this.state.password_value}
                     onChange={this.handlePasswordChange}
                     placeholder="Your password"
                   />
-                  <FormControl.Feedback />
+                  {/* <FormControl.Feedback /> */}
                 </FormGroup>
               </Form>
-              <ButtonToolbar className="auth-buttons">
-                <Button
-                  onClick={this.registerCallback}
-                  bsSize="large"
-                  bsStyle="primary"
-                >
-                  Register
-                </Button>
-                <Button
-                  onClick={this.authCallback}
-                  type="submit"
-                  bsSize="large"
-                  bsStyle="success"
-                >
-                  Log in
-                </Button>
-              </ButtonToolbar>
+              <Button
+                color="primary"
+                size="md"
+                block
+                onClick={this.registerCallback}
+              >
+                Register
+              </Button>
+              <Button
+                color="primary"
+                size="md"
+                className="test"
+                block
+                onClick={this.authCallback}
+              >
+                Log in
+              </Button>
             </Col>
           </Row>
         </Col>
@@ -319,13 +319,6 @@ class App extends Component {
           </p>
         </div>
       </div>
-    ) : (
-      <Redirect
-        to={{
-          pathname: "/add-info",
-          state: { email: this.state.email_value }
-        }}
-      />
     );
   }
 

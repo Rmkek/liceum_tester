@@ -95,12 +95,12 @@ app.get("/api/assignments", (req, res) => {
 app.get("/api/getAssignmentPack", (req, res) => {
   let name = req.query.name;
   let nameIsFound = false;
-
+  console.log("in getAssignmentPack");
   ASSIGNMENTS_CONFIGURATION.assignmentPacks.forEach(elem => {
     if (elem.name === name) {
       nameIsFound = true;
-
       let answer = { assignments: [] };
+
       fs.readFile(
         `${ASSIGNMENTS_DIRECTORY}${elem.tasks}`,
         "utf8",
@@ -110,13 +110,41 @@ app.get("/api/getAssignmentPack", (req, res) => {
               name: e.name
             });
           });
-          res.status(200);
-          res.json(answer);
+
+          MongoClient.connect(MONGO_URL, (err, db) => {
+            if (err) throw err;
+            const database = db.db(MONGO_DATABASE_NAME);
+
+            database
+              .collection(MONGO_USERS_COLLECTION)
+              .find({ email: req.session.email })
+              .toArray((err, result) => {
+                if (err) throw err;
+                console.log("GetAssignmentPack database");
+
+                if (result[0].finishedAssignments !== undefined) {
+                  console.log(result[0].finishedAssignments);
+                  answer.assignments.forEach(assignment => {
+                    result[0].finishedAssignments[name].forEach(element => {
+                      if (assignment.name === element) {
+                        assignment["solved"] = true;
+                      }
+                    });
+                  });
+                  res.status(200);
+                  res.json(answer);
+                  return true;
+                } else {
+                  res.status(200);
+                  res.json(answer);
+                  return true;
+                }
+              });
+          });
         }
       );
     }
   });
-
   if (!nameIsFound) {
     res.status(400);
     res.json({ error: ASSIGNMENT_CONSTANTS.NO_SUCH_ASSIGNMENT });
@@ -138,7 +166,6 @@ app.get("/api/register", (req, res) => {
     if (result.length > 0) {
       res.status(400);
       res.json({ error: AUTH_CONSTANTS.EMAIL_ALREADY_IN_DB });
-      return;
     } else {
       let user = {
         email: req.query.email,
@@ -167,7 +194,6 @@ app.get("/api/checkForLogin", (req, res) => {
     req.session.touch();
     res.status(200);
     res.json({ success: AUTH_CONSTANTS.CORRECT_PASSWORD });
-    return;
   } else {
     req.session.isLoggedIn = false;
     res.status(200);
@@ -236,7 +262,7 @@ app.get("/api/getNotApprovedUsers", (req, res) => {
     database
       .collection(MONGO_USERS_COLLECTION)
       .find(query)
-      .toArray(function(err, result) {
+      .toArray((err, result) => {
         if (err) throw err;
 
         res.status(200);
@@ -256,7 +282,6 @@ app.get("/api/add-info", (req, res) => {
   addInfo(req.session.email, name, grade, letter, result => {
     res.status(200);
     res.json({ success: result.result.ok });
-    return;
   });
 
   res.status(400);
@@ -323,7 +348,7 @@ app.post("/api/upload-code", (req, res) => {
                   let output_test_file = `${ASSIGNMENTS_DIRECTORY}${
                     elem.tests
                   }${test}_out.txt`;
-
+                  // TODO: parallelism
                   let input = fs.readFileSync(input_test_file, "utf8");
                   let expected_output = fs.readFileSync(
                     output_test_file,
@@ -505,8 +530,7 @@ const updateFinishedAssignment = (email, assignmentPack, assignment, cb) => {
         } else {
           // TODO: mongoose.
           let output = {};
-
-          result[0].finishedAssignments.forEach(e => {
+          result[0].finishedAssignments[assignmentPack].forEach(e => {
             if (
               Object.keys(e)[0] === assignmentPack &&
               !e[assignmentPack].includes(assignment)
@@ -527,6 +551,7 @@ const updateFinishedAssignment = (email, assignmentPack, assignment, cb) => {
             Object.keys(newValue.$set.finishedAssignments).length === 0 &&
             newValue.$set.finishedAssignments.constructor === Object
           ) {
+            // TODO: add an response if assignment is already added
             console.log("[ERROR] Assignment already added in set.");
             db.close();
             return;
