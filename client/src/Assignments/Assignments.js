@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import { Card, Col, Row, CardTitle, CardSubtitle } from "reactstrap";
 import "./Assignments.css";
 import { Link } from "react-router-dom";
-import * as ASSIGNMENT_CONSTANTS from "../Backend_answers/AssignmentConstants";
 
 class Assignments extends Component {
   constructor() {
