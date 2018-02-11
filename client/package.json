@@ -6,7 +6,7 @@
   "dependencies": {
     "base-64": "^0.1.0",
     "bootstrap": "^4.0.0",
-    "jquery": "^1.9.1",
+    "jquery": "^3.0.0",
     "react": "^16.0.0",
     "react-cookie": "^2.1.1",
     "react-dom": "^16.0.0",
