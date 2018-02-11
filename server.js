@@ -114,7 +114,7 @@ app.get("/api/getAssignmentPack", (req, res) => {
             .toArray((err, result) => {
               if (err) throw err;
 
-              if (result[0].finishedAssignments !== undefined) {
+              if (result[0] !== undefined && result[0].finishedAssignments !== undefined) {
                 for (let i = 0; i < answer.assignments.length; i++) {
                   let assignment = answer.assignments[i];
 
@@ -144,7 +144,7 @@ app.get("/api/getAssignmentPack", (req, res) => {
     }
   });
   if (!nameIsFound) {
-    res.status(400);
+    res.status(404);
     res.json({ error: ASSIGNMENT_CONSTANTS.NO_SUCH_ASSIGNMENT });
   }
 });

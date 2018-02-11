@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
-import { Col, Row, Table, Button, FormGroup, Badge, Input, Label } from "reactstrap";
+import { Col, Row, Table, Button, FormGroup, Badge, Input, Label, Alert } from "reactstrap";
 import * as ASSIGNMENT_CONSTANTS from "../../Backend_answers/AssignmentConstants";
 import * as CODE_TESTING_CONSTANTS from "../../Backend_answers/CodeTestingConstants";
 import "./Assignment.css";
@@ -12,7 +12,8 @@ class Assignment extends Component {
     this.state = {
       assignments: null,
       assignment_pack_name: this.props.location.pathname.substring(this.props.location.pathname.lastIndexOf("/") + 1, this.props.location.pathname.length),
-      tests_status: []
+      tests_status: [],
+      assignment_not_found: ""
     };
 
     fetch(`http://localhost:3000/api/getAssignmentPack?name=${this.state.assignment_pack_name}`, {
@@ -22,7 +23,20 @@ class Assignment extends Component {
       .then(response => response.json())
       .then(json => {
         if (json.error && json.error === ASSIGNMENT_CONSTANTS.NO_SUCH_ASSIGNMENT) {
-          console.log("no such assignment");
+          let errorRender = (
+            <Alert color="danger">
+              <h4>There is no such assignment!</h4>
+              <p>
+                Try going back to where you came from and rechecking your URL. If this doesn't help - contact site{" "}
+                <a href="https://vk.com/rmk1337" rel="noopener noreferrer" target="_blank">
+                  admin
+                </a>
+              </p>
+            </Alert>
+          );
+          this.setState({
+            assignment_not_found: errorRender
+          });
         }
 
         if (json) {
@@ -84,7 +98,6 @@ class Assignment extends Component {
                 <th>Tests</th>
               </tr>
             </thead>
-
             <tbody>
               {this.state.assignments.map(element => (
                 <tr key={element.name}>
@@ -108,7 +121,7 @@ class Assignment extends Component {
         </Row>
       </Col>
     ) : (
-      ""
+      this.state.assignment_not_found
     );
   }
 }
