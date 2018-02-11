@@ -10,6 +10,7 @@
     "cookie-parser": "^1.4.3",
     "esformatter-jsx": "^8.0.1",
     "eslint-plugin-jsx": "0.0.2",
+    "eslint-plugin-prettier": "^2.6.0",
     "express": "4.16.2",
     "express-fileupload": "^0.4.0",
     "express-session": "^1.15.6",
@@ -19,7 +20,7 @@
     "lint-staged": "^6.1.0",
     "minimatch": "^3.0.4",
     "mongodb": "^3.0.2",
-    "prettier": "^1.10.2",
+    "prettier": "1.10.2",
     "secure-random": "^1.1.1",
     "sha1": "^1.1.1",
     "sql.js": "0.5.0",
@@ -30,11 +31,7 @@
     "server": "node server.js",
     "client": "node start-client.js",
     "dev": "echo \"This command has been deprecated. Use 'npm start'\" && exit 1",
-    "lint": "eslint .",
-    "precommit": "lint-staged"
-  },
-  "lint-staged": {
-    "*.js": ["prettier --write", "git add"]
+    "lint": "eslint ."
   },
   "devDependencies": {
     "@types/express": "^4.11.1",
@@ -48,6 +45,7 @@
     "eslint-plugin-flowtype": "^2.42.0",
     "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-jsx-a11y": "^6.0.3",
-    "eslint-plugin-react": "^7.6.1"
+    "eslint-plugin-react": "^7.6.1",
+    "prettier-eslint-cli": "^4.7.0"
   }
 }

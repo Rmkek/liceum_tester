@@ -1,15 +1,6 @@
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
-import {
-  Col,
-  Row,
-  Table,
-  Button,
-  FormGroup,
-  Badge,
-  Input,
-  Label
-} from "reactstrap";
+import { Col, Row, Table, Button, FormGroup, Badge, Input, Label } from "reactstrap";
 import * as ASSIGNMENT_CONSTANTS from "../../Backend_answers/AssignmentConstants";
 import * as CODE_TESTING_CONSTANTS from "../../Backend_answers/CodeTestingConstants";
 import "./Assignment.css";
@@ -20,28 +11,17 @@ class Assignment extends Component {
 
     this.state = {
       assignments: null,
-      assignment_pack_name: this.props.location.pathname.substring(
-        this.props.location.pathname.lastIndexOf("/") + 1,
-        this.props.location.pathname.length
-      ),
+      assignment_pack_name: this.props.location.pathname.substring(this.props.location.pathname.lastIndexOf("/") + 1, this.props.location.pathname.length),
       tests_status: []
     };
 
-    fetch(
-      `http://localhost:3000/api/getAssignmentPack?name=${
-        this.state.assignment_pack_name
-      }`,
-      {
-        accept: "application/json",
-        credentials: "include"
-      }
-    )
+    fetch(`http://localhost:3000/api/getAssignmentPack?name=${this.state.assignment_pack_name}`, {
+      accept: "application/json",
+      credentials: "include"
+    })
       .then(response => response.json())
       .then(json => {
-        if (
-          json.error &&
-          json.error === ASSIGNMENT_CONSTANTS.NO_SUCH_ASSIGNMENT
-        ) {
+        if (json.error && json.error === ASSIGNMENT_CONSTANTS.NO_SUCH_ASSIGNMENT) {
           console.log("no such assignment");
         }
 
@@ -53,13 +33,9 @@ class Assignment extends Component {
 
   onSendClick = e => {
     e.persist();
-    let file = document
-      .getElementById(`uploadForm-${e.target.getAttribute("id")}`)
-      .getElementsByClassName("upload__file")[0].files[0];
+    let file = document.getElementById(`uploadForm-${e.target.getAttribute("id")}`).getElementsByClassName("upload__file")[0].files[0];
     let formData = new FormData();
-    let testsStatusDOMElement = document.getElementById(
-      `tests_status-${e.target.getAttribute("id")}`
-    );
+    let testsStatusDOMElement = document.getElementById(`tests_status-${e.target.getAttribute("id")}`);
     let testingBadge = <Badge color="secondary">Testing...</Badge>;
     ReactDOM.render(testingBadge, testsStatusDOMElement);
     if (file === undefined) {
@@ -68,16 +44,11 @@ class Assignment extends Component {
 
     formData.append("codeFile", file);
 
-    fetch(
-      `http://localhost:3001/api/upload-code?assignmentPack=${
-        this.state.assignment_pack_name
-      }&assignment=${e.target.getAttribute("id")}`,
-      {
-        method: "POST",
-        credentials: "include",
-        body: formData
-      }
-    )
+    fetch(`http://localhost:3001/api/upload-code?assignmentPack=${this.state.assignment_pack_name}&assignment=${e.target.getAttribute("id")}`, {
+      method: "POST",
+      credentials: "include",
+      body: formData
+    })
       .then(resp => resp.json())
       .then(json => {
         switch (json) {
@@ -90,9 +61,7 @@ class Assignment extends Component {
             ReactDOM.render(warningBadge, testsStatusDOMElement);
             break;
           case CODE_TESTING_CONSTANTS.NO_FILES_UPLOADED:
-            let uploadWarningBadge = (
-              <Badge color="warning">No files were uploaded.</Badge>
-            );
+            let uploadWarningBadge = <Badge color="warning">No files were uploaded.</Badge>;
             ReactDOM.render(uploadWarningBadge, testsStatusDOMElement);
             break;
           default:
@@ -105,9 +74,9 @@ class Assignment extends Component {
 
   render() {
     return this.state.assignments != null ? (
-      <Col xs={6}>
+      <Col lg={{ size: 4, offset: 4 }} md={{ size: 4, offset: 4 }} xs={{ size: 4, offset: 4 }}>
         <Row>
-          <Table>
+          <Table bordered hover>
             <thead>
               <tr>
                 <th>Assignment</th>
@@ -119,39 +88,19 @@ class Assignment extends Component {
             <tbody>
               {this.state.assignments.map(element => (
                 <tr key={element.name}>
-                  <td>{element.name}</td>
+                  <th scope="row">{element.name}</th>
                   <td>
-                    <form
-                      id={`uploadForm-${element.name}`}
-                      action="http://localhost:3001/api/upload-code"
-                      method="POST"
-                      encType="multipart/form-data"
-                    >
+                    <form id={`uploadForm-${element.name}`} action="http://localhost:3001/api/upload-code" method="POST" encType="multipart/form-data">
                       <FormGroup>
                         <Label for="upload__file-input">Source code</Label>
-                        <Input
-                          id="upload__file-input"
-                          className="upload__file"
-                          type="file"
-                          name="sampleFile"
-                        />
-                        <Button
-                          className="button--send"
-                          id={element.name}
-                          onClick={this.onSendClick}
-                        >
+                        <Input id="upload__file-input" className="upload__file" type="file" name="sampleFile" />
+                        <Button className="button--send" id={element.name} onClick={this.onSendClick}>
                           Submit!
                         </Button>
                       </FormGroup>
                     </form>
                   </td>
-                  <td id={`tests_status-${element.name}`}>
-                    {element.solved === true ? (
-                      <Badge color="success">Solved</Badge>
-                    ) : (
-                      "Not solved."
-                    )}
-                  </td>
+                  <td id={`tests_status-${element.name}`}>{element.solved === true ? <Badge color="success">Solved</Badge> : "Not solved."}</td>
                 </tr>
               ))}
             </tbody>

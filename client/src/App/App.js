@@ -1,17 +1,5 @@
 import React, { Component } from "react";
-import {
-  Button,
-  Col,
-  Row,
-  FormGroup,
-  Form,
-  Modal,
-  Label,
-  Input,
-  ModalHeader,
-  ModalBody,
-  ModalFooter
-} from "reactstrap";
+import { Button, Col, Row, FormGroup, Form, Modal, Label, Input, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 import "./App.css";
 import { Redirect } from "react-router-dom";
 import * as AUTH_CONSTANTS from "../Backend_answers/AuthConstants";
@@ -47,12 +35,7 @@ class App extends Component {
       if (e.keyCode === 13 && this.state.modal_shown) {
         e.preventDefault();
         this.setState({ modal_shown: !this.state.modal_shown });
-      } else if (
-        e.keyCode === 13 &&
-        this.state.email_value !== "" &&
-        this.state.password_value !== "" &&
-        this.validateEmail(this.state.email_value)
-      ) {
+      } else if (e.keyCode === 13 && this.state.email_value !== "" && this.state.password_value !== "" && this.validateEmail(this.state.email_value)) {
         e.preventDefault();
         this.authCallback();
       }
@@ -79,20 +62,11 @@ class App extends Component {
   };
 
   authCallback = () => {
-    if (
-      this.state.email_value !== "" &&
-      this.state.password_value !== "" &&
-      this.validateEmail(this.state.email_value)
-    ) {
-      return fetch(
-        `api/auth?email=${base64.encode(
-          this.state.email_value
-        )}&pass=${base64.encode(this.state.password_value)}`,
-        {
-          accept: "application/json",
-          credentials: "include"
-        }
-      ).then(response => {
+    if (this.state.email_value !== "" && this.state.password_value !== "" && this.validateEmail(this.state.email_value)) {
+      return fetch(`api/auth?email=${base64.encode(this.state.email_value)}&pass=${base64.encode(this.state.password_value)}`, {
+        accept: "application/json",
+        credentials: "include"
+      }).then(response => {
         if (response.status >= 200 && response.status < 300) {
           console.log("Successfully logged in.");
           this.setState({ redirect: true });
@@ -103,8 +77,7 @@ class App extends Component {
               case AUTH_CONSTANTS.USER_IS_NOT_APPROVED:
                 this.setState({
                   modal_title: "Error",
-                  modal_text:
-                    "Your e-mail is not yet approved. Wait for teacher to approve it."
+                  modal_text: "Your e-mail is not yet approved. Wait for teacher to approve it."
                 });
                 break;
               case AUTH_CONSTANTS.WRONG_PASSWORD:
@@ -116,21 +89,15 @@ class App extends Component {
               case AUTH_CONSTANTS.USER_IS_NOT_REGISTERED:
                 this.setState({
                   modal_title: "Error",
-                  modal_text:
-                    "User is not registered. Try pressing register button and waiting for approval."
+                  modal_text: "User is not registered. Try pressing register button and waiting for approval."
                 });
                 break;
               default:
                 this.setState({
                   modal_title: "Error",
-                  modal_text:
-                    "Something really, really bad mumbo-jumbo happened. Immediately report it to ",
+                  modal_text: "Something really, really bad mumbo-jumbo happened. Immediately report it to ",
                   vk_link: (
-                    <a
-                      href="https://vk.com/rmk1337"
-                      rel="noopener noreferrer"
-                      target="_blank"
-                    >
+                    <a href="https://vk.com/rmk1337" rel="noopener noreferrer" target="_blank">
                       Kirill Pavidlov
                     </a>
                   )
@@ -145,25 +112,15 @@ class App extends Component {
   };
 
   registerCallback = () => {
-    if (
-      this.state.email_value !== "" &&
-      this.state.password_value !== "" &&
-      this.validateEmail(this.state.email_value)
-    ) {
-      return fetch(
-        `api/register?email=${base64.encode(
-          this.state.email_value
-        )}&pass=${base64.encode(this.state.password_value)}`,
-        {
-          accept: "application/json",
-          credentials: "include"
-        }
-      ).then(response => {
+    if (this.state.email_value !== "" && this.state.password_value !== "" && this.validateEmail(this.state.email_value)) {
+      return fetch(`api/register?email=${base64.encode(this.state.email_value)}&pass=${base64.encode(this.state.password_value)}`, {
+        accept: "application/json",
+        credentials: "include"
+      }).then(response => {
         if (response.status === 200) {
           this.setState({
             modal_title: "Registration successful",
-            modal_text:
-              "Wait for teacher to approve your registration, until that you won't be able to log in."
+            modal_text: "Wait for teacher to approve your registration, until that you won't be able to log in."
           });
           this.setState({ modal_shown: true });
           return response;
@@ -179,21 +136,15 @@ class App extends Component {
               case AUTH_CONSTANTS.EMAIL_ALREADY_IN_DB:
                 this.setState({
                   modal_title: "Error",
-                  modal_text:
-                    "Email is already listed in database. Wait for teacher to approve it, or (if you have been approved), try pressing Log in button."
+                  modal_text: "Email is already listed in database. Wait for teacher to approve it, or (if you have been approved), try pressing Log in button."
                 });
                 break;
               case AUTH_CONSTANTS.CANT_INSERT_USER_IN_COLLECTION:
                 this.setState({
                   modal_title: "Error",
-                  modal_text:
-                    "Some backend exception happened. Report this incident to your teacher or to ",
+                  modal_text: "Some backend exception happened. Report this incident to your teacher or to ",
                   vk_link: (
-                    <a
-                      href="https://vk.com/rmk1337"
-                      rel="noopener noreferrer"
-                      target="_blank"
-                    >
+                    <a href="https://vk.com/rmk1337" rel="noopener noreferrer" target="_blank">
                       Kirill Pavidlov
                     </a>
                   )
@@ -202,14 +153,9 @@ class App extends Component {
               default:
                 this.setState({
                   modal_title: "Error",
-                  modal_text:
-                    "Something really, really bad mumbo-jumbo happened. Immediately report it to ",
+                  modal_text: "Something really, really bad mumbo-jumbo happened. Immediately report it to ",
                   vk_link: (
-                    <a
-                      href="https://vk.com/rmk1337"
-                      rel="noopener noreferrer"
-                      target="_blank"
-                    >
+                    <a href="https://vk.com/rmk1337" rel="noopener noreferrer" target="_blank">
                       Kirill Pavidlov
                     </a>
                   )
@@ -239,9 +185,7 @@ class App extends Component {
       <div>
         <div className="modal-container">
           <Modal isOpen={this.state.modal_shown} onClick={this.closeModal}>
-            <ModalHeader toggle={this.closeModal}>
-              {this.state.modal_title}
-            </ModalHeader>
+            <ModalHeader toggle={this.closeModal}>{this.state.modal_title}</ModalHeader>
             <ModalBody>
               {this.state.modal_text}
               {this.state.vk_link}
@@ -253,11 +197,7 @@ class App extends Component {
         </div>
         <Col xs="3" md="12">
           <Row>
-            <Col
-              lg={{ size: 2, offset: 5 }}
-              md={{ size: 4, offset: 4 }}
-              xs={{ size: 4, offset: 4 }}
-            >
+            <Col lg={{ size: 2, offset: 5 }} md={{ size: 4, offset: 4 }} xs={{ size: 4, offset: 4 }}>
               <Form className="form-container">
                 <FormGroup>
                   <Label for="email_input"> Enter your E-mail address: </Label>
@@ -273,31 +213,14 @@ class App extends Component {
                 </FormGroup>
                 <FormGroup>
                   <Label for="password_input"> Enter your password: </Label>
-                  <Input
-                    type="password"
-                    name="password"
-                    value={this.state.password_value}
-                    onChange={this.handlePasswordChange}
-                    placeholder="Your password"
-                  />
+                  <Input type="password" name="password" value={this.state.password_value} onChange={this.handlePasswordChange} placeholder="Your password" />
                   {/* <FormControl.Feedback /> */}
                 </FormGroup>
               </Form>
-              <Button
-                color="primary"
-                size="md"
-                block
-                onClick={this.registerCallback}
-              >
+              <Button color="primary" size="md" block onClick={this.registerCallback}>
                 Register
               </Button>
-              <Button
-                color="primary"
-                size="md"
-                className="test"
-                block
-                onClick={this.authCallback}
-              >
+              <Button color="primary" size="md" className="test" block onClick={this.authCallback}>
                 Log in
               </Button>
             </Col>
@@ -307,11 +230,7 @@ class App extends Component {
           <p>
             {" "}
             Created with <span id="heart">❤</span> by{" "}
-            <a
-              href="https://vk.com/rmk1337"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
+            <a href="https://vk.com/rmk1337" rel="noopener noreferrer" target="_blank">
               {" "}
               Kirill Pavidlov{" "}
             </a>
