@@ -28,21 +28,6 @@ class Admin extends Component {
     };
   }
 
-  render() {
-    return (
-      <Table bordered hover>
-        <thead>
-          <tr>
-            <th>№</th>
-            <th>E-mail</th>
-            <th>Approve</th>
-          </tr>
-        </thead>
-        <tbody>{this.state.table_body}</tbody>
-      </Table>
-    );
-  }
-
   handleChange = event => {
     for (let i = 0; i < this.state.table_body.length; i++) {
       let each = this.state.table_body[i];
@@ -84,6 +69,21 @@ class Admin extends Component {
       </tr>
     );
   };
+
+  render() {
+    return (
+      <Table bordered hover>
+        <thead>
+          <tr>
+            <th>№</th>
+            <th>E-mail</th>
+            <th>Approve</th>
+          </tr>
+        </thead>
+        <tbody>{this.state.table_body}</tbody>
+      </Table>
+    );
+  }
 }
 
 export default Admin;
