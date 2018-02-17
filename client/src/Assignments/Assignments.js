@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Card, Col, Row, CardTitle, Alert, CardText } from "reactstrap";
+import { Col, Alert, Card, CardTitle, CardText, CardGroup, CardBody } from "reactstrap";
 import "./Assignments.css";
 import { Link } from "react-router-dom";
 
@@ -37,28 +37,28 @@ class Assignments extends Component {
   renderAssignment = elem => {
     this.setState({ keyIter: ++this.state.keyIter });
     return (
-      <Col key={this.state.keyIter} lg={2} md={2} xs={2}>
-        <Link style={{ textDecoration: "none", color: "black" }} to={`/assignment/${encodeURI(elem.name)}`}>
-          <Card className="assignment__thumbnail">
+      <Link key={this.state.keyIter} style={{ textDecoration: "none", color: "black" }} to={`/assignment/${encodeURI(elem.name)}`}>
+        <Card className="assignment__thumbnail">
+          <CardBody>
             <CardTitle className="assignment__thumbnail-title">{elem.name}</CardTitle>
             <CardText>{elem.category}</CardText>
-          </Card>
-        </Link>
-      </Col>
+          </CardBody>
+        </Card>
+      </Link>
     );
   };
 
   render() {
     return (
-      <Col xs={{ size: 4, offset: 2 }} md={{ size: 6, offset: 3 }}>
-        <Alert color="dark">
-          <Row>
+      <div>
+        <Col xs={{ size: 4, offset: 2 }} md={{ size: 6, offset: 3 }}>
+          <Alert color="dark">
             <h1 className="alert-heading alert__h1">Your assignments</h1>
-            <small>Logged in as {this.state.full_name}</small>
-          </Row>
-          <Row>{this.state.assignments}</Row>
-        </Alert>
-      </Col>
+            <small className="alert-heading logged_in">Logged in as {this.state.full_name}</small>
+            <CardGroup>{this.state.assignments}</CardGroup>
+          </Alert>
+        </Col>
+      </div>
     );
   }
 }

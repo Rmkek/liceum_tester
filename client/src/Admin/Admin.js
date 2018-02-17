@@ -30,18 +30,16 @@ class Admin extends Component {
 
   render() {
     return (
-      <div className="table__container">
-        <Table bordered condensed>
-          <thead>
-            <tr>
-              <th>№</th>
-              <th>E-mail</th>
-              <th>Approve</th>
-            </tr>
-          </thead>
-          <tbody>{this.state.table_body}</tbody>
-        </Table>
-      </div>
+      <Table bordered hover>
+        <thead>
+          <tr>
+            <th>№</th>
+            <th>E-mail</th>
+            <th>Approve</th>
+          </tr>
+        </thead>
+        <tbody>{this.state.table_body}</tbody>
+      </Table>
     );
   }
 
@@ -78,7 +76,10 @@ class Admin extends Component {
         <td>{this.state.users_in_table}</td>
         <td>{email}</td>
         <td>
-          <Button onClick={this.handleChange} index={keyIter} />
+          <Button onClick={this.handleChange} index={keyIter}>
+            {" "}
+            Approve{" "}
+          </Button>
         </td>
       </tr>
     );
