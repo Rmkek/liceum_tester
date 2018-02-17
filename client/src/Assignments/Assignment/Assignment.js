@@ -11,9 +11,13 @@ class Assignment extends Component {
 
     this.state = {
       assignments: null,
-      assignment_pack_name: this.props.location.pathname.substring(this.props.location.pathname.lastIndexOf("/") + 1, this.props.location.pathname.length),
+      assignment_pack_name: this.props.location.pathname.substring(
+        this.props.location.pathname.lastIndexOf("/") + 1,
+        this.props.location.pathname.length
+      ),
       tests_status: [],
-      assignment_not_found: ""
+      assignment_not_found: "",
+      assignment_badge: "Not solved."
     };
 
     fetch(`http://localhost:3000/api/getAssignmentPack?name=${this.state.assignment_pack_name}`, {
@@ -51,6 +55,7 @@ class Assignment extends Component {
     let formData = new FormData();
     let testsStatusDOMElement = document.getElementById(`tests_status-${e.target.getAttribute("id")}`);
     let testingBadge = <Badge color="secondary">Testing...</Badge>;
+
     ReactDOM.render(testingBadge, testsStatusDOMElement);
     if (file === undefined) {
       return;
@@ -58,37 +63,42 @@ class Assignment extends Component {
 
     formData.append("codeFile", file);
 
-    fetch(`http://localhost:3001/api/upload-code?assignmentPack=${this.state.assignment_pack_name}&assignment=${e.target.getAttribute("id")}`, {
-      method: "POST",
-      credentials: "include",
-      body: formData
-    })
+    fetch(
+      `http://localhost:3001/api/upload-code?assignmentPack=${this.state.assignment_pack_name}&assignment=${e.target.getAttribute("id")}`,
+      {
+        method: "POST",
+        credentials: "include",
+        body: formData
+      }
+    )
       .then(resp => resp.json())
       .then(json => {
-        switch (json) {
-          case CODE_TESTING_CONSTANTS.TESTS_PASSED:
-            let successBadge = <Badge color="success">Success</Badge>;
-            ReactDOM.render(successBadge, testsStatusDOMElement);
-            break;
-          case CODE_TESTING_CONSTANTS.TESTS_FAILED:
-            let warningBadge = <Badge color="warning">Tests failed</Badge>;
-            ReactDOM.render(warningBadge, testsStatusDOMElement);
-            break;
-          case CODE_TESTING_CONSTANTS.NO_FILES_UPLOADED:
-            let uploadWarningBadge = <Badge color="warning">No files were uploaded.</Badge>;
-            ReactDOM.render(uploadWarningBadge, testsStatusDOMElement);
-            break;
-          default:
-            let errorBadge = <Badge color="danger">SERVER ERROR</Badge>;
-            ReactDOM.render(errorBadge, testsStatusDOMElement);
-            console.log("Default case happened (this is bad probably)");
+        if (json.error) {
+          let warningBadge = <Badge color="warning">Tests failed on test {json.on_test}</Badge>;
+          ReactDOM.render(warningBadge, testsStatusDOMElement);
+          return;
+        } else {
+          switch (json) {
+            case CODE_TESTING_CONSTANTS.TESTS_PASSED:
+              let successBadge = <Badge color="success">Success</Badge>;
+              ReactDOM.render(successBadge, testsStatusDOMElement);
+              break;
+            case CODE_TESTING_CONSTANTS.NO_FILES_UPLOADED:
+              let uploadWarningBadge = <Badge color="warning">No files were uploaded.</Badge>;
+              ReactDOM.render(uploadWarningBadge, testsStatusDOMElement);
+              break;
+            default:
+              let errorBadge = <Badge color="danger">SERVER ERROR</Badge>;
+              ReactDOM.render(errorBadge, testsStatusDOMElement);
+              console.log("Default case happened (this is bad probably)");
+          }
         }
       });
   };
 
   render() {
     return this.state.assignments != null ? (
-      <Col lg={{ size: 4, offset: 4 }} md={{ size: 4, offset: 4 }} xs={{ size: 4, offset: 4 }}>
+      <Col lg={{ size: 6, offset: 3 }} md={{ size: 6, offset: 3 }} xs={{ size: 6, offset: 3 }}>
         <Row>
           <Table bordered hover>
             <thead>
@@ -103,17 +113,27 @@ class Assignment extends Component {
                 <tr key={element.name}>
                   <th scope="row">{element.name}</th>
                   <td>
-                    <form id={`uploadForm-${element.name}`} action="http://localhost:3001/api/upload-code" method="POST" encType="multipart/form-data">
+                    <form
+                      id={`uploadForm-${element.name}`}
+                      action="http://localhost:3001/api/upload-code"
+                      method="POST"
+                      encType="multipart/form-data">
                       <FormGroup>
                         <Label for="upload__file-input">Source code</Label>
-                        <Input id="upload__file-input" className="upload__file" type="file" name="sampleFile" />
-                        <Button className="button--send" id={element.name} onClick={this.onSendClick}>
-                          Submit!
-                        </Button>
+                        {element.solved ? "" : <Input id="upload__file-input" className="upload__file" type="file" name="sampleFile" />}
+                        {element.solved ? (
+                          ""
+                        ) : (
+                          <Button className="button--send" id={element.name} onClick={this.onSendClick}>
+                            Submit
+                          </Button>
+                        )}
                       </FormGroup>
                     </form>
                   </td>
-                  <td id={`tests_status-${element.name}`}>{element.solved === true ? <Badge color="success">Solved</Badge> : "Not solved."}</td>
+                  <td id={`tests_status-${element.name}`}>
+                    {element.solved === true ? <Badge color="success">Solved</Badge> : this.state.assignment_badge}
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -338,7 +338,6 @@ app.post("/api/upload-code", (req, res) => {
                 let test = tests[k];
                 let input_test_file = `${ASSIGNMENTS_DIRECTORY}${elem.tests}${test}_in.txt`;
                 let output_test_file = `${ASSIGNMENTS_DIRECTORY}${elem.tests}${test}_out.txt`;
-                // TODO: parallelism
                 let input = fs.readFileSync(input_test_file, "utf8");
                 let expected_output = fs.readFileSync(output_test_file, "utf8");
                 let output = execSync(
@@ -359,7 +358,8 @@ app.post("/api/upload-code", (req, res) => {
                   });
 
                   res.status(500);
-                  res.json(CODE_TESTING_CONSTANTS.SERVER_ERROR);
+                  CODE_TESTING_CONSTANTS.TESTS_FAILED.on_test = k + 1;
+                  res.json(CODE_TESTING_CONSTANTS.TESTS_FAILED);
                   return;
                 }
               }
@@ -399,7 +399,10 @@ app.get("/api/get-info", (req, res) => {
       res.json({ success: INFO_CONSTANTS.INFO_NOT_ADDED });
     } else {
       res.status(200);
-      res.json({ success: INFO_CONSTANTS.INFO_ADDED });
+      res.json({
+        success: INFO_CONSTANTS.INFO_ADDED,
+        name: result[0].additional_info.name
+      });
     }
   });
 });

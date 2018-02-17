@@ -1,3 +1,7 @@
+.alert__h1 {
+  font-family: "Lato", sans-serif;
+}
+
 .assignment__thumbnail {
   margin-top: 5%;
   text-align: center;

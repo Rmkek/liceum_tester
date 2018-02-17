@@ -1,16 +1,5 @@
 import React, { Component } from "react";
-import {
-  Card,
-  Col,
-  Button,
-  Input,
-  FormGroup,
-  Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-  Label
-} from "reactstrap";
+import { Card, Col, Button, Input, FormGroup, Modal, ModalBody, ModalFooter, ModalHeader, Label } from "reactstrap";
 import { Redirect } from "react-router-dom";
 import * as INFO_CONSTANTS from "../Backend_answers/InfoConstants";
 import "./AddInfo.css";
@@ -35,9 +24,11 @@ class AddInfo extends Component {
     })
       .then(response => response.json())
       .then(json => {
-        console.log("[DEBUG] In AddInfo, info is already added.");
         if (json.success === INFO_CONSTANTS.INFO_ADDED) {
-          this.setState({ infoAdded: true });
+          this.setState({
+            infoAdded: true,
+            full_name: json.name
+          });
         }
       });
 
@@ -67,17 +58,11 @@ class AddInfo extends Component {
       });
     } else {
       let name = this.state.full_name;
-      let grade = document.getElementsByClassName(
-        "info__grade__select__grade"
-      )[0][
-        document.getElementsByClassName("info__grade__select__grade")[0]
-          .selectedIndex
+      let grade = document.getElementsByClassName("info__grade__select__grade")[0][
+        document.getElementsByClassName("info__grade__select__grade")[0].selectedIndex
       ].innerText;
-      let letter = document.getElementsByClassName(
-        "info__grade__select__letter"
-      )[0][
-        document.getElementsByClassName("info__grade__select__letter")[0]
-          .selectedIndex
+      let letter = document.getElementsByClassName("info__grade__select__letter")[0][
+        document.getElementsByClassName("info__grade__select__letter")[0].selectedIndex
       ].innerText;
 
       fetch(`api/add-info?name=${name}&grade=${grade}&letter=${letter}`, {
@@ -86,7 +71,6 @@ class AddInfo extends Component {
       })
         .then(response => response.json())
         .then(json => {
-          console.log(json);
           this.setState({ infoAdded: true });
         });
     }
@@ -94,16 +78,16 @@ class AddInfo extends Component {
 
   render() {
     return this.state.infoAdded ? (
-      <Redirect from="/add-info" to="/assignments" />
+      <Redirect
+        to={{
+          pathname: "assignments",
+          state: { full_name: this.state.full_name }
+        }}
+      />
     ) : (
       <Col xs={{ size: 4, offset: 4 }} className="info__container">
         <div className="modal-container">
-          <Modal
-            show={this.state.modal_shown}
-            onHide={this.closeModal}
-            container={this}
-            aria-labelledby="contained-modal-title"
-          >
+          <Modal show={this.state.modal_shown} onHide={this.closeModal} container={this} aria-labelledby="contained-modal-title">
             <ModalHeader closeButton>{this.state.modal_title}</ModalHeader>
             <ModalBody>{this.state.modal_text}</ModalBody>
             <ModalFooter>
@@ -128,30 +112,17 @@ class AddInfo extends Component {
             <Label for="add-info__input-grade" className="info__grade__label">
               Select Grade:
             </Label>
-            <Input
-              type="select"
-              id="add-info__input-grade"
-              className="info__grade__select__grade"
-              placeholder="select"
-            >
+            <Input type="select" id="add-info__input-grade" className="info__grade__select__grade" placeholder="select">
               <option>9</option>
               <option>10</option>
               <option>11</option>
             </Input>
           </FormGroup>
           <FormGroup>
-            <Label
-              for="add-info__input-grade_letter"
-              className="info__grade__letter"
-            >
+            <Label for="add-info__input-grade_letter" className="info__grade__letter">
               Select Grade Letter:
             </Label>
-            <Input
-              type="select"
-              id="add-info__input-grade_letter"
-              className="info__grade__select__letter"
-              placeholder="select"
-            >
+            <Input type="select" id="add-info__input-grade_letter" className="info__grade__select__letter" placeholder="select">
               <option>А</option>
               <option>Б</option>
               <option>В</option>

@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Card, Col, Row, CardTitle, CardSubtitle } from "reactstrap";
+import { Card, Col, Row, CardTitle, Alert, CardText } from "reactstrap";
 import "./Assignments.css";
 import { Link } from "react-router-dom";
 
@@ -10,7 +10,8 @@ class Assignments extends Component {
     this.state = {
       assignments: "",
       keyIter: -1,
-      assignments_json: {}
+      assignments_json: {},
+      full_name: ""
     };
   }
 
@@ -27,11 +28,9 @@ class Assignments extends Component {
         });
         this.setState({
           assignments_json: json,
-          assignments: assignmentArray
+          assignments: assignmentArray,
+          full_name: this.props.location.state.full_name
         });
-      })
-      .catch(err => {
-        console.log("finally a fucking error happened", err);
       });
   };
 
@@ -42,7 +41,7 @@ class Assignments extends Component {
         <Link style={{ textDecoration: "none", color: "black" }} to={`/assignment/${encodeURI(elem.name)}`}>
           <Card className="assignment__thumbnail">
             <CardTitle className="assignment__thumbnail-title">{elem.name}</CardTitle>
-            <CardSubtitle>{elem.category}</CardSubtitle>
+            <CardText>{elem.category}</CardText>
           </Card>
         </Link>
       </Col>
@@ -51,8 +50,14 @@ class Assignments extends Component {
 
   render() {
     return (
-      <Col xs={12} md={12}>
-        <Row>{this.state.assignments}</Row>
+      <Col xs={{ size: 4, offset: 2 }} md={{ size: 6, offset: 3 }}>
+        <Alert color="dark">
+          <Row>
+            <h1 className="alert-heading alert__h1">Your assignments</h1>
+            <small>Logged in as {this.state.full_name}</small>
+          </Row>
+          <Row>{this.state.assignments}</Row>
+        </Alert>
       </Col>
     );
   }
