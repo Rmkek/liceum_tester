@@ -61,6 +61,11 @@ app.use((req, res, next) => {
   next();
 });
 
+console.log(__dirname);
+
+//FIXME
+app.use(express.static("Assignments/tasksFor10DEasy"));
+
 // Express only serves static assets in production
 // TODO: think about production and serving static files.
 if (process.env.NODE_ENV === "production") {
@@ -113,7 +118,6 @@ app.get("/api/getAssignmentPack", (req, res) => {
             .find({ email: req.session.email })
             .toArray((err, result) => {
               if (err) throw err;
-
               if (result[0] !== undefined && result[0].finishedAssignments !== undefined) {
                 for (let i = 0; i < answer.assignments.length; i++) {
                   let assignment = answer.assignments[i];
@@ -470,10 +474,10 @@ const updateFinishedAssignment = (email, assignmentPack, assignment, cb) => {
 
         if (result[0].finishedAssignments === undefined) {
           let obj = {};
-          obj[assignmentPack] = new Array(assignment);
+          obj[assignmentPack] = [assignment];
 
           let newValue = {
-            $push: {
+            $set: {
               finishedAssignments: obj
             }
           };
@@ -484,14 +488,11 @@ const updateFinishedAssignment = (email, assignmentPack, assignment, cb) => {
             cb(result);
           });
         } else {
-          // TODO: mongoose.
           let output = {};
-          result[0].finishedAssignments[assignmentPack].forEach(e => {
-            if (Object.keys(e)[0] === assignmentPack && !e[assignmentPack].includes(assignment)) {
-              e[assignmentPack].push(assignment);
-              output = e;
-            }
-          });
+          if (!result[0].finishedAssignments[assignmentPack].includes(assignment)) {
+            output[assignmentPack] = [assignment, ...result[0].finishedAssignments[assignmentPack]];
+          }
+          console.log("out: ", output);
 
           let newValue = {
             $set: {

@@ -35,7 +35,13 @@ class App extends Component {
       if (e.keyCode === 13 && this.state.modal_shown) {
         e.preventDefault();
         this.setState({ modal_shown: !this.state.modal_shown });
-      } else if (e.keyCode === 13 && this.state.email_value !== "" && this.state.password_value !== "" && this.validateEmail(this.state.email_value)) {
+      } else if (
+        e.keyCode === 13 &&
+        this.state.email_value !== "" &&
+        this.state.password_value !== "" &&
+        this.getEmailValidationState() &&
+        this.getPasswordValidationState()
+      ) {
         e.preventDefault();
         this.authCallback();
       }
@@ -46,7 +52,11 @@ class App extends Component {
     // eslint-disable-next-line
     let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     if (this.state.email_value === "") return null;
-    return re.test(this.state.email_value) ? "success" : "error";
+    return re.test(this.state.email_value) ? true : false;
+  };
+
+  getPasswordValidationState = () => {
+    return this.state.password_value.length === 0 ? null : this.state.password_value.length >= 6 ? true : false;
   };
 
   handleEmailChange = e => {
@@ -136,7 +146,8 @@ class App extends Component {
               case AUTH_CONSTANTS.EMAIL_ALREADY_IN_DB:
                 this.setState({
                   modal_title: "Error",
-                  modal_text: "Email is already listed in database. Wait for teacher to approve it, or (if you have been approved), try pressing Log in button."
+                  modal_text:
+                    "Email is already listed in database. Wait for teacher to approve it, or (if you have been approved), try pressing Log in button."
                 });
                 break;
               case AUTH_CONSTANTS.CANT_INSERT_USER_IN_COLLECTION:
@@ -205,16 +216,22 @@ class App extends Component {
                     id="email_input"
                     type="email"
                     name="email"
+                    valid={this.getEmailValidationState()}
                     value={this.state.email_value}
                     onChange={this.handleEmailChange}
                     placeholder="Your e-mail"
                   />
-                  {/* <FormControl.Feedback /> */}
                 </FormGroup>
                 <FormGroup>
                   <Label for="password_input"> Enter your password: </Label>
-                  <Input type="password" name="password" value={this.state.password_value} onChange={this.handlePasswordChange} placeholder="Your password" />
-                  {/* <FormControl.Feedback /> */}
+                  <Input
+                    type="password"
+                    name="password"
+                    valid={this.getPasswordValidationState()}
+                    value={this.state.password_value}
+                    onChange={this.handlePasswordChange}
+                    placeholder="Your password"
+                  />
                 </FormGroup>
               </Form>
               <Button color="primary" size="md" block onClick={this.registerCallback}>

@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
+import { Link } from "react-router-dom";
 import { Col, Row, Table, Button, FormGroup, Badge, Input, Label, Alert } from "reactstrap";
 import * as ASSIGNMENT_CONSTANTS from "../../Backend_answers/AssignmentConstants";
 import * as CODE_TESTING_CONSTANTS from "../../Backend_answers/CodeTestingConstants";
@@ -106,6 +107,7 @@ class Assignment extends Component {
                 <th>Assignment</th>
                 <th>Send solution</th>
                 <th>Tests</th>
+                <th>PDF</th>
               </tr>
             </thead>
             <tbody>
@@ -133,6 +135,15 @@ class Assignment extends Component {
                   </td>
                   <td id={`tests_status-${element.name}`}>
                     {element.solved === true ? <Badge color="success">Solved</Badge> : this.state.assignment_badge}
+                  </td>
+                  <td>
+                    {this.state.assignment_pack_name === "Easy Tasks" ? (
+                      <a href="http://localhost:3001/task1.pdf" target="_blank">
+                        Click me!
+                      </a>
+                    ) : (
+                      ""
+                    )}
                   </td>
                 </tr>
               ))}

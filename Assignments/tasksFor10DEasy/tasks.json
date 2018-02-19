@@ -1,11 +1,11 @@
 {
   "assignments": [
     {
-      "name": "Vova",
+      "name": "Cout << 15",
       "tests": ["1"]
     },
     {
-      "name": "Kirusha",
+      "name": "For each cycles",
       "tests": ["2"]
     },
     {
@@ -13,7 +13,7 @@
       "tests": ["3"]
     },
     {
-      "name": "Lesha",
+      "name": "Work with std::vector",
       "tests": ["4"]
     },
     {

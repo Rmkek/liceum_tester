@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Card, Col, Button, Input, FormGroup, Modal, ModalBody, ModalFooter, ModalHeader, Label } from "reactstrap";
+import { Container, Col, Button, Input, FormGroup, Modal, ModalBody, ModalFooter, ModalHeader, Label } from "reactstrap";
 import { Redirect } from "react-router-dom";
 import * as INFO_CONSTANTS from "../Backend_answers/InfoConstants";
 import "./AddInfo.css";
@@ -95,7 +95,7 @@ class AddInfo extends Component {
             </ModalFooter>
           </Modal>
         </div>
-        <Card header="Additional information">
+        <Container className="add-info-container">
           <FormGroup>
             <Label for="add-info__input-fullname">Enter your full name:</Label>
             <Input
@@ -131,7 +131,7 @@ class AddInfo extends Component {
             </Input>
           </FormGroup>
           <Button onClick={this.submitAdditionalInfo}>Submit</Button>
-        </Card>
+        </Container>
       </Col>
     );
   }

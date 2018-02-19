@@ -1,15 +1,16 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import { BrowserRouter as Router, Route } from "react-router-dom";
+import registerServiceWorker from "./registerServiceWorker";
+
 import App from "./App/App";
 import Assignments from "./Assignments/Assignments";
 import Admin from "./Admin/Admin";
 import AddAssignments from "./Admin/AddAssignments/AddAssignments";
 import AddInfo from "./AddInfo/AddInfo";
-import Assignment from "./Assignments/Assignment/Assignment";
-import { BrowserRouter as Router, Route } from "react-router-dom";
-import registerServiceWorker from "./registerServiceWorker";
-import "./bootstrap.css";
 import AdminPage from "./Admin/AdminPage";
+import Assignment from "./Assignments/Assignment/Assignment";
+import "./bootstrap.css";
 
 ReactDOM.render(
   <Router>
