@@ -471,8 +471,8 @@ const updateFinishedAssignment = (email, assignmentPack, assignment, cb) => {
       .find({ email: email })
       .toArray((err, result) => {
         if (err) throw err;
-
-        if (result[0].finishedAssignments === undefined) {
+        console.log("finishedAssignments:", result[0].finishedAssignments);
+        if (result[0].finishedAssignments === undefined || result[0].finishedAssignments.length === 0) {
           let obj = {};
           obj[assignmentPack] = [assignment];
 
