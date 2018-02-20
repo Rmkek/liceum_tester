@@ -1,0 +1,48 @@
+.footer {
+  position: absolute;
+  right: 0;
+  margin-right: 20px;
+  bottom: 0;
+  font-size: 20px;
+  color: black;
+  letter-spacing: 1px;
+  font-family: "Merriweather", serif;
+}
+
+.footer__name-margin {
+  margin-left: 10px;
+}
+
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(1.5);
+  }
+  20% {
+    transform: scale(2);
+  }
+  40% {
+    transform: scale(1.5);
+  }
+  60% {
+    transform: scale(2);
+  }
+  80% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(1.5);
+  }
+}
+
+#heart {
+  display: inline-block;
+  margin-right: 5px;
+  color: #00ff00;
+  animation: heartbeat 1s infinite;
+  animation-play-state: paused;
+}
+
+#heart:hover {
+  animation-play-state: running;
+}

@@ -276,7 +276,6 @@ app.get("/api/getNotApprovedUsers", (req, res) => {
 
 app.get("/api/add-info", (req, res) => {
   //TODO check add-info for user having session. If there is no session, redirect to login page.
-
   let name = req.query.name;
   let grade = req.query.grade;
   let letter = req.query.letter;

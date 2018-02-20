@@ -1,0 +1,25 @@
+.modal-container {
+  position: absolute;
+}
+
+.auth-buttons {
+  margin: auto;
+  margin-top: 1em;
+  width: 15em;
+  display: inline-block;
+}
+
+.auth-container {
+  padding: 1em;
+   /* shadows and rounded borders */
+   -moz-border-radius: 5px;
+   -webkit-border-radius: 5px;
+   border-radius: 5px;
+   -moz-box-shadow: 0px 5px 5px rgba(0, 0, 0, 0.3);
+   -webkit-box-shadow: 0px 5px 5px rgba(0, 0, 0, 0.3);
+   box-shadow: 0px 5px 5px rgba(0, 0, 0, 0.3);
+}
+
+.auth-container__margin {
+  margin-top: 15em;
+}

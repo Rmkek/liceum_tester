@@ -1,0 +1,68 @@
+.alert__h1 {
+  font-family: "Lato", sans-serif;
+}
+
+.assignment-container {
+  padding: 1em;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  -moz-box-shadow: 0px 5px 5px rgba(0, 0, 0, 0.3);
+  -webkit-box-shadow: 0px 5px 5px rgba(0, 0, 0, 0.3);
+  box-shadow: 0px 5px 5px rgba(0, 0, 0, 0.3);
+}
+
+.assignment__thumbnail {
+  text-align: center;
+  font-family: "Nunito", sans-serif;
+  cursor: pointer;
+}
+
+.assignment__thumbnail-title {
+  font-size: 2rem;
+}
+
+.assignment__link, .assignment__link:hover{
+  text-decoration: none;
+  color: black;
+  margin-left: 1em;
+}
+
+h5::before,
+h5::after {
+	display: inline-block;
+	opacity: 0;
+	-webkit-transition: -webkit-transform 0.3s, opacity 0.2s;
+	-moz-transition: -moz-transform 0.3s, opacity 0.2s;
+	transition: transform 0.3s, opacity 0.2s;
+}
+
+h5::before {
+	margin-right: 10px;
+	content: '[';
+	-webkit-transform: translateX(20px);
+	-moz-transform: translateX(20px);
+	transform: translateX(20px);
+}
+
+h5::after {
+	margin-left: 10px;
+	content: ']';
+	-webkit-transform: translateX(-20px);
+	-moz-transform: translateX(-20px);
+	transform: translateX(-20px);
+}
+
+h5:hover::before,
+h5:hover::after,
+h5:focus::before,
+h5:focus::after {
+	opacity: 1;
+	-webkit-transform: translateX(0px);
+	-moz-transform: translateX(0px);
+	transform: translateX(0px);
+}
+
+.assignment__link:first-child {
+  margin-left: 0;
+}

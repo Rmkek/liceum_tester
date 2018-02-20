@@ -6,7 +6,7 @@ class AdminPage extends Component {
     return (
       <div>
         <AdminNavBar />
-        {this.props.props}
+        {this.props.component}
       </div>
     );
   }

@@ -1,25 +1,29 @@
 import React, { Component } from "react";
-import { Button, Col, Row, FormGroup, Form, Modal, Label, Input, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
+import {
+  Button,
+  Col,
+  Row,
+  FormGroup,
+  Form,
+  Modal,
+  Label,
+  Input,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  InputGroup,
+  InputGroupAddon,
+  InputGroupText
+} from "reactstrap";
 import "./App.css";
 import { Redirect } from "react-router-dom";
-import * as AUTH_CONSTANTS from "../Backend_answers/AuthConstants";
+import * as AUTH_CONSTANTS from "../../Backend_answers/AuthConstants";
+import Spinner from "../../Reusables/Spinner/Spinner";
 const base64 = require("base-64");
 
 class App extends Component {
   constructor() {
     super();
-    fetch(`api/checkForLogin`, {
-      accept: "application/json",
-      credentials: "include"
-    })
-      .then(response => response.json())
-      .then(resp => {
-        if (resp.success === AUTH_CONSTANTS.NOT_LOGGED_IN) {
-          console.log("Not logged in");
-        } else {
-          this.setState({ redirect: true });
-        }
-      });
 
     this.state = {
       email_value: "",
@@ -28,8 +32,26 @@ class App extends Component {
       modal_title: "",
       modal_text: "",
       vk_link: "",
-      redirect: false
+      redirect: false,
+      is_loading: true
     };
+
+    fetch(`api/checkForLogin`, {
+      accept: "application/json",
+      credentials: "include"
+    })
+      .then(response => response.json())
+      .then(resp => {
+        if (resp.success === AUTH_CONSTANTS.NOT_LOGGED_IN) {
+          console.log("Not logged in");
+          this.setState({ is_loading: false });
+        } else {
+          this.setState({
+            is_loading: false,
+            redirect: true
+          });
+        }
+      });
 
     document.onkeypress = e => {
       if (e.keyCode === 13 && this.state.modal_shown) {
@@ -180,8 +202,11 @@ class App extends Component {
   };
 
   render() {
+    if (this.state.is_loading) {
+      return <Spinner />;
+    }
+
     if (this.state.redirect) {
-      console.log("in redirect, email:", this.state.email_value);
       return (
         <Redirect
           to={{
@@ -207,52 +232,56 @@ class App extends Component {
           </Modal>
         </div>
         <Col xs="3" md="12">
-          <Row>
-            <Col lg={{ size: 2, offset: 5 }} md={{ size: 4, offset: 4 }} xs={{ size: 4, offset: 4 }}>
-              <Form className="form-container">
+          <Row className="auth-container__margin">
+            <Col lg={{ size: 2, offset: 5 }} md={{ size: 4, offset: 4 }} xs={{ size: 4, offset: 4 }} className="auth-container bg-aqua">
+              <Form>
                 <FormGroup>
                   <Label for="email_input"> Enter your E-mail address: </Label>
-                  <Input
-                    id="email_input"
-                    type="email"
-                    name="email"
-                    valid={this.getEmailValidationState()}
-                    value={this.state.email_value}
-                    onChange={this.handleEmailChange}
-                    placeholder="Your e-mail"
-                  />
+                  <InputGroup>
+                    <InputGroupAddon addonType="prepend">
+                      <InputGroupText>
+                        <i className="fa fa-envelope fa" aria-hidden="true" />
+                      </InputGroupText>
+                    </InputGroupAddon>
+                    <Input
+                      id="email_input"
+                      type="email"
+                      name="email"
+                      valid={this.getEmailValidationState()}
+                      value={this.state.email_value}
+                      onChange={this.handleEmailChange}
+                      placeholder="Your e-mail"
+                    />
+                  </InputGroup>
                 </FormGroup>
                 <FormGroup>
                   <Label for="password_input"> Enter your password: </Label>
-                  <Input
-                    type="password"
-                    name="password"
-                    valid={this.getPasswordValidationState()}
-                    value={this.state.password_value}
-                    onChange={this.handlePasswordChange}
-                    placeholder="Your password"
-                  />
+                  <InputGroup>
+                    <InputGroupAddon addonType="prepend">
+                      <InputGroupText>
+                        <i className="fa fa-lock fa-lg" aria-hidden="true" />
+                      </InputGroupText>
+                    </InputGroupAddon>
+                    <Input
+                      type="password"
+                      name="password"
+                      valid={this.getPasswordValidationState()}
+                      value={this.state.password_value}
+                      onChange={this.handlePasswordChange}
+                      placeholder="Your password"
+                    />
+                  </InputGroup>
                 </FormGroup>
               </Form>
               <Button color="primary" size="md" block onClick={this.registerCallback}>
                 Register
               </Button>
-              <Button color="primary" size="md" className="test" block onClick={this.authCallback}>
+              <Button color="primary" size="md" block onClick={this.authCallback}>
                 Log in
               </Button>
             </Col>
           </Row>
         </Col>
-        <div className="footer">
-          <p>
-            {" "}
-            Created with <span id="heart">❤</span> by{" "}
-            <a href="https://vk.com/rmk1337" rel="noopener noreferrer" target="_blank">
-              {" "}
-              Kirill Pavidlov{" "}
-            </a>
-          </p>
-        </div>
       </div>
     );
   }

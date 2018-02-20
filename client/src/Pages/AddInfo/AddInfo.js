@@ -1,12 +1,15 @@
 import React, { Component } from "react";
 import { Container, Col, Button, Input, FormGroup, Modal, ModalBody, ModalFooter, ModalHeader, Label } from "reactstrap";
 import { Redirect } from "react-router-dom";
-import * as INFO_CONSTANTS from "../Backend_answers/InfoConstants";
+import * as INFO_CONSTANTS from "../../Backend_answers/InfoConstants";
+import Spinner from "../../Reusables/Spinner/Spinner";
 import "./AddInfo.css";
 
 class AddInfo extends Component {
   constructor(props) {
     super(props);
+
+    console.log("[DEBUG] ADDINFO: ", this);
 
     this.state = {
       full_name: "",
@@ -14,8 +17,9 @@ class AddInfo extends Component {
       modal_title: "",
       modal_text: "",
       buttonContent: "",
-      infoAdded: false,
-      email: this.props.location.state.email
+      redirect: false,
+      email: this.props.location.state.email_value,
+      is_loading: false
     };
 
     fetch(`api/get-info?email=${this.state.email}`, {
@@ -26,8 +30,9 @@ class AddInfo extends Component {
       .then(json => {
         if (json.success === INFO_CONSTANTS.INFO_ADDED) {
           this.setState({
-            infoAdded: true,
-            full_name: json.name
+            redirect: true,
+            full_name: json.name,
+            is_loading: false
           });
         }
       });
@@ -71,20 +76,27 @@ class AddInfo extends Component {
       })
         .then(response => response.json())
         .then(json => {
-          this.setState({ infoAdded: true });
+          this.setState({ redirect: true });
         });
     }
   };
 
   render() {
-    return this.state.infoAdded ? (
-      <Redirect
-        to={{
-          pathname: "assignments",
-          state: { full_name: this.state.full_name }
-        }}
-      />
-    ) : (
+    if (this.state.is_loading) {
+      return <Spinner />;
+    }
+
+    if (this.state.redirect) {
+      return (
+        <Redirect
+          to={{
+            pathname: "assignments",
+            state: { full_name: this.state.full_name }
+          }}
+        />
+      );
+    }
+    return (
       <Col xs={{ size: 4, offset: 4 }} className="info__container">
         <div className="modal-container">
           <Modal show={this.state.modal_shown} onHide={this.closeModal} container={this} aria-labelledby="contained-modal-title">
