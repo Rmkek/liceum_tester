@@ -29,7 +29,7 @@
     "concurrently": "^3.5.1"
   },
   "scripts": {
-    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "start": "npm run server | npm run client",
     "server": "nodemon server.js",
     "client": "node start-client.js",
     "dev": "echo \"This command has been deprecated. Use 'npm start'\" && exit 1",
@@ -50,6 +50,6 @@
     "prettier-eslint-cli": "^4.7.0"
   },
   "engine": {
-    "node" : "9.6.1"
+    "node": "9.6.1"
   }
 }
