@@ -3,6 +3,8 @@ const session = require("express-session");
 const fs = require("fs");
 const fileUpload = require("express-fileupload");
 
+const MongoClient = require("mongodb").MongoClient; // remove
+const MongoStore = require("connect-mongo")(session); // remove
 const mongoose = require("mongoose");
 
 const sha1 = require("sha1");

@@ -1,1 +1,1 @@
-web: node server.js && node start-client.js
+web: node server.js
