@@ -3,8 +3,6 @@ const session = require("express-session");
 const fs = require("fs");
 const fileUpload = require("express-fileupload");
 
-const MongoClient = require("mongodb").MongoClient; // remove
-const MongoStore = require("connect-mongo")(session); // remove
 const mongoose = require("mongoose");
 
 const sha1 = require("sha1");
@@ -25,6 +23,7 @@ const APPROVE_USER_CONSTANTS = require("./client/src/Backend_answers/ApproveCons
 const CODE_TESTING_CONSTANTS = require("./client/src/Backend_answers/CodeTestingConstants");
 
 const MONGO_URL = "mongodb://localhost:27017/liceum_db";
+const MONGO_HEROKU_URL = "mongodb://admin:admin@ds251518.mlab.com:51518/heroku_jqnjslh3";
 
 const User = require("./models/User");
 const AssignmentPacks = require("./models/AssignmentPacks");
@@ -35,7 +34,7 @@ const assignmentTaskModel = mongoose.model("AssignmentTask", AssignmentTaskSchem
 const MONGO_DATABASE_NAME = "liceum_db";
 const MONGO_USERS_COLLECTION = "users";
 
-mongoose.connect(MONGO_URL);
+mongoose.connect(MONGO_HEROKU_URL);
 
 // we're going to translate this into  mongoose
 const CODE_SAVING_DIRECTORY = __dirname + "/testing_folder";
