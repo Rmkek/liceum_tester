@@ -8,9 +8,6 @@ import "./AddInfo.css";
 class AddInfo extends Component {
   constructor(props) {
     super(props);
-
-    console.log("[DEBUG] ADDINFO: ", this);
-
     this.state = {
       full_name: "",
       modal_shown: false,
@@ -18,7 +15,7 @@ class AddInfo extends Component {
       modal_text: "",
       buttonContent: "",
       redirect: false,
-      email: this.props.location.state.email_value,
+      email: this.props.location.state.email,
       is_loading: false
     };
 
@@ -73,11 +70,16 @@ class AddInfo extends Component {
       fetch(`api/add-info?name=${name}&grade=${grade}&letter=${letter}`, {
         accept: "application/json",
         credentials: "include"
-      })
-        .then(response => response.json())
-        .then(json => {
+      }).then(response => {
+        if (response.status === 200) {
           this.setState({ redirect: true });
-        });
+          return;
+        } else {
+          response.json().then(json => {
+            this.setState({ redirect: true });
+          });
+        }
+      });
     }
   };
 

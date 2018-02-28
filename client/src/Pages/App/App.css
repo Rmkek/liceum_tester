@@ -11,6 +11,8 @@
 
 .auth-container {
   padding: 1em;
+  background-color: rgba(255,255,255,0.5);
+
    /* shadows and rounded borders */
    -moz-border-radius: 5px;
    -webkit-border-radius: 5px;

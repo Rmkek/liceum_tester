@@ -1,0 +1,23 @@
+.add-test__button {
+  margin-top: 1em;
+}
+
+.test__container {
+    padding: 1em;
+     /* shadows and rounded borders */
+     -moz-border-radius: 5px;
+     -webkit-border-radius: 5px;
+     border-radius: 5px;
+     -moz-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.3);
+     -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.3);
+     box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.3);
+     margin-left: 4.25em;
+}
+
+.test_margin {
+  margin-top: 1.5em;
+}
+
+.assignment_margin {
+  margin-top: 1.5em;
+}

@@ -14,8 +14,8 @@ class Admin extends Component {
       .then(response => response.json())
       .then(resp => {
         let users = [];
-        resp.success.forEach(element => {
-          users.push(this.renderTableRow(element.email));
+        resp.forEach(element => {
+          users.push(this.renderTableRow(element));
         }, this);
         this.setState({ table_body: users });
       });
@@ -55,7 +55,6 @@ class Admin extends Component {
       users_in_table: ++this.state.users_in_table
     });
     ++keyIter;
-    console.log(keyIter);
     return (
       <tr key={keyIter}>
         <td>{this.state.users_in_table}</td>

@@ -23,7 +23,7 @@ class Assignments extends Component {
       .then(response => response.json())
       .then(json => {
         let assignmentArray = [];
-        json.assignments.forEach(element => {
+        json.forEach(element => {
           assignmentArray.push(this.renderAssignment(element));
         });
         this.setState({

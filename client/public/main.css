@@ -1,0 +1,30 @@
+.background {
+  background: linear-gradient(239deg, #001f3f, #0074D9, #7fdbff, #39cccc, #2ECC40, #01FF70, #FFDC00, #FF851B, #FF4136, #85144b, #F012BE, #B10DC9);
+  background-size: 1600% 1600%;
+  background-attachment: fixed;
+  -webkit-animation: Background 720s ease infinite;
+  -moz-animation: Background 720s ease infinite;
+  -o-animation: Background 720s ease infinite;
+  animation: Background 720s ease infinite;
+}
+
+@-webkit-keyframes Background {
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+@-moz-keyframes Background {
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+@-o-keyframes Background {
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+@keyframes Background {
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}

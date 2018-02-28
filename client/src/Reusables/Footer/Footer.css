@@ -13,36 +13,18 @@
   margin-left: 10px;
 }
 
-
-@keyframes heartbeat {
-  0% {
-    transform: scale(1.5);
-  }
-  20% {
-    transform: scale(2);
-  }
-  40% {
-    transform: scale(1.5);
-  }
-  60% {
-    transform: scale(2);
-  }
-  80% {
-    transform: scale(1.5);
-  }
-  100% {
-    transform: scale(1.5);
-  }
-}
-
-#heart {
-  display: inline-block;
-  margin-right: 5px;
-  color: #00ff00;
-  animation: heartbeat 1s infinite;
+.heart {
+	color: #e00;
+  animation: beat .25s infinite alternate;
   animation-play-state: paused;
+  transform-origin: center;
 }
 
-#heart:hover {
+.heart:hover {
   animation-play-state: running;
+}
+
+/* Heart beat animation */
+@keyframes beat{
+	to { transform: scale(1.4); }
 }

@@ -1,3 +1,4 @@
+/* eslint import/no-webpack-loader-syntax: off */
 import React, { Component } from "react";
 import {
   Button,
@@ -42,7 +43,7 @@ class App extends Component {
     })
       .then(response => response.json())
       .then(resp => {
-        if (resp.success === AUTH_CONSTANTS.NOT_LOGGED_IN) {
+        if (resp === AUTH_CONSTANTS.NOT_LOGGED_IN) {
           console.log("Not logged in");
           this.setState({ is_loading: false });
         } else {
@@ -158,7 +159,7 @@ class App extends Component {
           return response;
         } else {
           response.json().then(response => {
-            switch (response.error) {
+            switch (response) {
               case AUTH_CONSTANTS.WRONG_EMAIL:
                 this.setState({
                   modal_title: "Error",
@@ -233,7 +234,8 @@ class App extends Component {
         </div>
         <Col xs="3" md="12">
           <Row className="auth-container__margin">
-            <Col lg={{ size: 2, offset: 5 }} md={{ size: 4, offset: 4 }} xs={{ size: 4, offset: 4 }} className="auth-container bg-aqua">
+            <Col lg={{ size: 2, offset: 5 }} md={{ size: 4, offset: 4 }} xs={{ size: 4, offset: 4 }} className="auth-container">
+              {/* bg-aqua */}
               <Form>
                 <FormGroup>
                   <Label for="email_input"> Enter your E-mail address: </Label>
