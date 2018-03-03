@@ -16,7 +16,7 @@ class AddInfo extends Component {
       buttonContent: "",
       redirect: false,
       email: this.props.location.state.email,
-      is_loading: false
+      is_loading: true
     };
 
     fetch(`api/get-info?email=${this.state.email}`, {
@@ -84,10 +84,6 @@ class AddInfo extends Component {
   };
 
   render() {
-    if (this.state.is_loading) {
-      return <Spinner />;
-    }
-
     // too slow, think about it
     if (this.state.redirect) {
       return (
@@ -100,7 +96,7 @@ class AddInfo extends Component {
       );
     }
 
-    return (
+    return ( this.state.is_loading ? <Spinner></Spinner> : 
       <Col xs={{ size: 4, offset: 4 }} className="info__container">
         <div className="modal-container">
           <Modal show={this.state.modal_shown} onHide={this.closeModal} container={this} aria-labelledby="contained-modal-title">
