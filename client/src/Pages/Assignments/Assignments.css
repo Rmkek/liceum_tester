@@ -22,6 +22,12 @@
   font-size: 2rem;
 }
 
+.assignment__link__margin-top, .assignment__link__margin-top:hover {
+	text-decoration: none;
+	color: black;
+	margin-top: 1em;
+}
+
 .assignment__link, .assignment__link:hover{
   text-decoration: none;
   color: black;

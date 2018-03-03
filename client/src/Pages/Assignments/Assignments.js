@@ -37,7 +37,10 @@ class Assignments extends Component {
   renderAssignment = elem => {
     this.setState({ keyIter: ++this.state.keyIter });
     return (
-      <Link key={this.state.keyIter} className="assignment__link" to={`/assignment/${encodeURI(elem.name)}`}>
+      <Link
+        key={this.state.keyIter}
+        className={elem.name.length >= 20 ? "assignment__link__margin-top" : "assignment__link"}
+        to={`/assignment/${encodeURI(elem.name)}`}>
         <Card className="assignment__thumbnail">
           <CardBody>
             <CardTitle className="assignment__thumbnail-title">{elem.name}</CardTitle>

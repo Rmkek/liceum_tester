@@ -88,6 +88,7 @@ class AddInfo extends Component {
       return <Spinner />;
     }
 
+    // too slow, think about it
     if (this.state.redirect) {
       return (
         <Redirect
@@ -98,6 +99,7 @@ class AddInfo extends Component {
         />
       );
     }
+
     return (
       <Col xs={{ size: 4, offset: 4 }} className="info__container">
         <div className="modal-container">

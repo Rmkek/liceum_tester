@@ -20,12 +20,18 @@ class Assignment extends Component {
       assignment_badge: "Not solved."
     };
 
-    fetch(`http://localhost:3000/api/getAssignmentPack?name=${this.state.assignment_pack_name}`, {
-      accept: "application/json",
-      credentials: "include"
+    fetch("http://localhost:3001/api/getAssignmentPack", {
+      method: "post",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      credentials: "include",
+      body: JSON.stringify({ assignmentPack: this.state.assignment_pack_name })
     })
       .then(response => response.json())
-      .then(json => {
+        .then(json => {
+          console.log("got json: ", json);
         if (json.error && json.error === ASSIGNMENT_CONSTANTS.NO_SUCH_ASSIGNMENT) {
           let errorRender = (
             <Alert color="danger">
@@ -44,7 +50,7 @@ class Assignment extends Component {
         }
 
         if (json) {
-          this.setState({ assignments: json.assignments });
+          this.setState({ assignments: json.tasks, pdfPath: `/${json.pdfPath}` });
         }
       });
   }
@@ -52,7 +58,7 @@ class Assignment extends Component {
   onSendClick = e => {
     e.persist();
     let file = document.getElementById(`uploadForm-${e.target.getAttribute("id")}`).getElementsByClassName("upload__file")[0].files[0];
-    let formData = new FormData();
+    let data = new FormData();
     let testsStatusDOMElement = document.getElementById(`tests_status-${e.target.getAttribute("id")}`);
     let testingBadge = <Badge color="secondary">Testing...</Badge>;
 
@@ -61,16 +67,14 @@ class Assignment extends Component {
       return;
     }
 
-    formData.append("codeFile", file);
-
-    fetch(
-      `http://localhost:3001/api/upload-code?assignmentPack=${this.state.assignment_pack_name}&assignment=${e.target.getAttribute("id")}`,
-      {
-        method: "POST",
-        credentials: "include",
-        body: formData
-      }
-    )
+    data.append("codeFile", file);
+    data.append("assignmentPackName", this.state.assignment_pack_name);
+    data.append("assignmentID", e.target.getAttribute("id"));
+    fetch(`http://localhost:3001/api/upload-code`, {
+      method: "POST",
+      credentials: "include",
+      body: data
+    })
       .then(resp => resp.json())
       .then(json => {
         if (json.error) {
@@ -115,7 +119,7 @@ class Assignment extends Component {
                   <th scope="row">{element.name}</th>
                   <td>
                     <form
-                      id={`uploadForm-${element.name}`}
+                      id={`uploadForm-${element.id}`}
                       action="http://localhost:3001/api/upload-code"
                       method="POST"
                       encType="multipart/form-data">
@@ -125,24 +129,20 @@ class Assignment extends Component {
                         {element.solved ? (
                           ""
                         ) : (
-                          <Button className="button--send" id={element.name} onClick={this.onSendClick}>
+                          <Button className="button--send" id={element.id} onClick={this.onSendClick}>
                             Submit
                           </Button>
                         )}
                       </FormGroup>
                     </form>
                   </td>
-                  <td id={`tests_status-${element.name}`}>
+                  <td id={`tests_status-${element.id}`}>
                     {element.solved === true ? <Badge color="success">Solved</Badge> : this.state.assignment_badge}
                   </td>
                   <td>
-                    {this.state.assignment_pack_name === "Easy Tasks" ? (
-                      <a href="http://localhost:3001/task1.pdf" target="_blank" rel="noopener noreferrer">
-                        Click me!
-                      </a>
-                    ) : (
-                      ""
-                    )}
+                    <a href={this.state.pdfPath} target="_blank" rel="noopener noreferrer">
+                      Click me!
+                    </a>
                   </td>
                 </tr>
               ))}

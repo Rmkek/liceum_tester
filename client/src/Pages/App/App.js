@@ -234,7 +234,7 @@ class App extends Component {
         </div>
         <Col xs="3" md="12">
           <Row className="auth-container__margin">
-            <Col lg={{ size: 2, offset: 5 }} md={{ size: 4, offset: 4 }} xs={{ size: 4, offset: 4 }} className="auth-container">
+            <Col lg={{ size: 2, offset: 5 }} md={{ size: 4, offset: 4 }} xs={{ size: 2, offset: 6 }} className="auth-container">
               {/* bg-aqua */}
               <Form>
                 <FormGroup>

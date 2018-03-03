@@ -14,7 +14,7 @@
 }
 
 .heart {
-	color: #e00;
+	color: #000;
   animation: beat .25s infinite alternate;
   animation-play-state: paused;
   transform-origin: center;
@@ -26,5 +26,6 @@
 
 /* Heart beat animation */
 @keyframes beat{
-	to { transform: scale(1.4); }
+  from {color: #000}
+	to { color: red }
 }
