@@ -33,7 +33,8 @@ const FinishedAssignmentPackSchema = require("./models/schemas/FinishedAssignmen
 const finishedAssignmentPacks = mongoose.model("FinishedAssignmentPack", FinishedAssignmentPackSchema);
 const assignmentTaskModel = mongoose.model("AssignmentTask", AssignmentTaskSchema);
 
-mongoose.connect(HEROKU_MONGO_URL);
+console.log("MONGOLAB_URL : ", process.env.MONGOLAB_URI);
+mongoose.connect(process.env.MONGOLAB_URI);
 
 const CODE_SAVING_DIRECTORY = __dirname + "/testing_folder";
 const PDF_SAVING_DIRECTORY = __dirname + "/client/public";
