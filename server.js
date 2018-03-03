@@ -23,6 +23,7 @@ const APPROVE_USER_CONSTANTS = require("./client/src/Backend_answers/ApproveCons
 const CODE_TESTING_CONSTANTS = require("./client/src/Backend_answers/CodeTestingConstants");
 
 const MONGO_URL = "mongodb://localhost:27017/liceum_db";
+const HEROKU_MONGO_URL = "mongodb://test:test@ds251518.mlab.com:51518/heroku_jqnjslh3";
 
 const User = require("./models/User");
 const AssignmentPacks = require("./models/AssignmentPacks");
