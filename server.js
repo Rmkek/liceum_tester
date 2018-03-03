@@ -526,7 +526,7 @@ app.get("/api/get-info", (req, res) => {
     .exec()
     .then(result => {
       console.log("In /api/get-info, result: ", result);
-      if (result === null || result === undefined || result.additional_info.name === undefined) {
+      if (result === null || result === undefined || result.additional_info === undefined) {
         res.status(400);
         res.json(INFO_CONSTANTS.INFO_NOT_ADDED);
       } else {
