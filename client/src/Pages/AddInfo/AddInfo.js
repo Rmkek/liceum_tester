@@ -84,6 +84,10 @@ class AddInfo extends Component {
   };
 
   render() {
+    if (this.state === undefined) {
+      return <Spinner />;
+    }
+
     // too slow, think about it
     if (this.state.redirect) {
       return (
@@ -96,7 +100,9 @@ class AddInfo extends Component {
       );
     }
 
-    return ( this.state.is_loading ? <Spinner></Spinner> : 
+    return this.state.is_loading ? (
+      <Spinner />
+    ) : (
       <Col xs={{ size: 4, offset: 4 }} className="info__container">
         <div className="modal-container">
           <Modal show={this.state.modal_shown} onHide={this.closeModal} container={this} aria-labelledby="contained-modal-title">
