@@ -11,6 +11,8 @@ const base64 = require("base-64");
 
 const bodyParser = require("body-parser");
 
+const path = require("path");
+
 const { execSync } = require("child_process");
 const uuid = require("uuid/v4");
 
@@ -57,19 +59,23 @@ app.use(fileUpload());
 
 app.use(bodyParser.json());
 
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:3000");
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  res.header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
-  next();
-});
+// app.use((req, res, next) => {
+//   res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+//   res.header("Access-Control-Allow-Credentials", "true");
+//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+//   res.header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+//   next();
+// });
 
 // Express only serves static assets in production
 // TODO: think about production and serving static files.
 if (process.env.NODE_ENV === "production") {
   app.use(express.static("client/build"));
 }
+
+console.log("currentdir: ", __dirname);
+
+app.use(express.static(path.resolve(__dirname, "../client/public")));
 
 app.get("/assignments", (req, res) => {
   req.session.touch();
@@ -533,6 +539,10 @@ app.get("/api/get-info", (req, res) => {
       res.status(400);
       res.json(INFO_CONSTANTS.SERVER_ERROR);
     });
+});
+
+app.get("*", function(request, response) {
+  response.sendFile(path.resolve(__dirname, "../client/public", "index.html"));
 });
 
 app.listen(app.get("port"), () => {
