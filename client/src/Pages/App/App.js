@@ -99,6 +99,7 @@ class App extends Component {
     if (this.state.email_value !== "" && this.state.password_value !== "" && this.validateEmail(this.state.email_value)) {
       return fetch(`api/auth`, {
         accept: "application/json",
+        "Content-Type": "application/json",
         credentials: "include",
         method: "POST",
         body: JSON.stringify({
@@ -154,6 +155,7 @@ class App extends Component {
     if (this.state.email_value !== "" && this.state.password_value !== "" && this.validateEmail(this.state.email_value)) {
       return fetch(`api/register`, {
         accept: "application/json",
+        "Content-Type": "application/json",
         method: "POST",
         body: JSON.stringify({
           email: base64.encode(this.state.email_value),
