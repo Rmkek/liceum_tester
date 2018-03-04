@@ -540,11 +540,12 @@ app.post("/api/get-info", (req, res) => {
     });
 });
 
-app.get("*", (request, response) => {
-  console.log("got request on *");
+// app.get("*", (request, response) => {
+//   console.log("got request on *");
+//   console.log("originalUrl: ", request.originalUrl);
+//   response.sendFile(path.resolve(__dirname, "./client/build", "index.html"));
+// });
 
-  response.sendFile(path.resolve(__dirname, "./client/build", "index.html"));
-});
 app.listen(app.get("port"), () => {
   console.log(`Find the server at: http://localhost:${app.get("port")}/`); // eslint-disable-line no-console
 });
