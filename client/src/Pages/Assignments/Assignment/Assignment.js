@@ -11,7 +11,10 @@ class Assignment extends Component {
 
     this.state = {
       assignments: null,
-      assignment_pack_name: this.props.location.pathname,
+      assignment_pack_name: this.props.location.pathname.substring(
+        this.props.location.pathname.lastIndexOf("/") + 1,
+        this.props.location.pathname.length
+      ),
       tests_status: [],
       assignment_not_found: "",
       assignment_badge: "Not solved."
