@@ -53,7 +53,6 @@ class Assignment extends Component {
 
         if (json) {
           // path depends on local and heroku server.
-          console.log("json: ", json);
           this.setState({
             assignments: json.tasks,
             pdfPath: json.pdfPath
@@ -147,7 +146,7 @@ class Assignment extends Component {
                     {element.solved === true ? <Badge color="success">Solved</Badge> : this.state.assignment_badge}
                   </td>
                   <td>
-                    <Link to={`${this.state.pdfPath}`}>Click me!</Link>
+                    <Link to={this.state.pdfPath}>Click me!</Link>
                   </td>
                 </tr>
               ))}

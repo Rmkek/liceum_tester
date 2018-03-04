@@ -209,7 +209,7 @@ app.post("/api/getAssignmentPack", (req, res, next) => {
           const userAssignments = user.assignments;
 
           let output = {
-            pdfPath: found.pdfPath.slice(found.pdfPath.lastIndexOf("/") + 1, found.pdfPath.length),
+            pdfPath: found.pdfPath,
             tasks: []
           };
           // checking that user has atleast some solved assignments
