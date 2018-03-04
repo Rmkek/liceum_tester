@@ -100,8 +100,7 @@ app.post("/api/add-assignment", (req, res) => {
       const uploadedFilePath = response.path_display;
       console.log("pdf is now on dropbox");
       dbx
-        .sharingCreateSharedLink({ path: uploadedFilePath, short_url: false }, (err, data) => {
-          if (err) console.log("Error happened while uploading assignment to dropbox: ", err);
+        .sharingCreateSharedLink({ path: uploadedFilePath, short_url: false }).then(data => {
           pdfFileURL = data.url.substring(0, data.url.length - 1) + "1";
           console.log("PDF link created: ", pdfFileURL);
           let arrLength = tasks instanceof Array ? tasks.length : 1;
