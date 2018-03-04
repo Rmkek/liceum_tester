@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
 import { Col, Row, Table, Button, FormGroup, Badge, Input, Label, Alert } from "reactstrap";
-import { Link } from "react-router-dom";
 import * as ASSIGNMENT_CONSTANTS from "../../../Backend_answers/AssignmentConstants";
 import * as CODE_TESTING_CONSTANTS from "../../../Backend_answers/CodeTestingConstants";
 import "./Assignment.css";
@@ -146,7 +145,9 @@ class Assignment extends Component {
                     {element.solved === true ? <Badge color="success">Solved</Badge> : this.state.assignment_badge}
                   </td>
                   <td>
-                    <Link to={this.state.pdfPath}>Click me!</Link>
+                    <a href={this.state.pdfPath} target="_blank" rel="noopener noreferrer">
+                      Click me!
+                    </a>
                   </td>
                 </tr>
               ))}
