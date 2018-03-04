@@ -544,10 +544,11 @@ app.get("/api/get-info", (req, res) => {
     });
 });
 
-// app.get("*", function(request, response) {
-//   console.log("got request on *, req: ", request);
-//   response.sendFile(path.resolve(__dirname, "../client/public", "index.html"));
-// });
+app.get("*", (request, response) => {
+  console.log("got request on *, req: ", request);
+  
+  response.sendFile(path.resolve(__dirname, "../client/public", "index.html"));
+});
 
 app.listen(app.get("port"), () => {
   console.log(`Find the server at: http://localhost:${app.get("port")}/`); // eslint-disable-line no-console
