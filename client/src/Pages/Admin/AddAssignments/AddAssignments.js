@@ -69,7 +69,7 @@ class AddAssignments extends Component {
       }
     }
 
-    fetch(`api/add-assignment`, {
+    fetch(`/api/add-assignment`, {
       accept: "application/json",
       credentials: "include",
       method: "POST",
