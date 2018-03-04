@@ -40,7 +40,7 @@ if (process.env.MONGOLAB_URI === undefined) {
   mongoose.connect(process.env.MONGOLAB_URI);
 }
 const CODE_SAVING_DIRECTORY = __dirname + "/testing_folder";
-const PDF_SAVING_DIRECTORY = __dirname + "/client/public";
+const PDF_SAVING_DIRECTORY = __dirname + "/client/build";
 
 app.set("port", process.env.PORT || 3001);
 
@@ -68,12 +68,6 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get("*", (request, response) => {
-  console.log("got request on *");
-
-  response.sendFile(path.resolve(__dirname, "./client/public", "index.html"));
-});
-
 // Express only serves static assets in production
 // TODO: think about production and serving static files.
 if (process.env.NODE_ENV === "production") {
@@ -81,9 +75,9 @@ if (process.env.NODE_ENV === "production") {
 }
 
 console.log("currentdir: ", __dirname);
-console.log("resolved path: ", path.resolve(__dirname, "./client/public"));
+console.log("resolved path: ", path.resolve(__dirname, "./client/build"));
 
-app.use(express.static(path.resolve(__dirname, "./client/public")));
+app.use(express.static(path.resolve(__dirname, "./client/build")));
 
 app.post("/api/add-assignment", (req, res) => {
   console.log("Got request on /api/add-assignment, body: ", req.body);
@@ -546,6 +540,11 @@ app.post("/api/get-info", (req, res) => {
     });
 });
 
+app.get("*", (request, response) => {
+  console.log("got request on *");
+
+  response.sendFile(path.resolve(__dirname, "./client/build", "index.html"));
+});
 app.listen(app.get("port"), () => {
   console.log(`Find the server at: http://localhost:${app.get("port")}/`); // eslint-disable-line no-console
 });
