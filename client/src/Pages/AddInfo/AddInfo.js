@@ -31,6 +31,8 @@ class AddInfo extends Component {
             full_name: json.name,
             is_loading: false
           });
+        } else {
+          this.setState({ is_loading: false });
         }
       });
 
