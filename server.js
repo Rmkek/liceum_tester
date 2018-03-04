@@ -25,7 +25,6 @@ const APPROVE_USER_CONSTANTS = require("./client/src/Backend_answers/ApproveCons
 const CODE_TESTING_CONSTANTS = require("./client/src/Backend_answers/CodeTestingConstants");
 
 const MONGO_URL = "mongodb://localhost:27017/liceum_db";
-const HEROKU_MONGO_URL = "mongodb://heroku_jqnjslh3:5duvdoo0pn2015aujsgb3sait3@ds251518.mlab.com:51518/heroku_jqnjslh3";
 
 const User = require("./models/User");
 const AssignmentPacks = require("./models/AssignmentPacks");
@@ -35,9 +34,11 @@ const FinishedAssignmentPackSchema = require("./models/schemas/FinishedAssignmen
 const finishedAssignmentPacks = mongoose.model("FinishedAssignmentPack", FinishedAssignmentPackSchema);
 const assignmentTaskModel = mongoose.model("AssignmentTask", AssignmentTaskSchema);
 
-console.log("MONGOLAB_URL : ", process.env.MONGOLAB_URI);
-mongoose.connect(process.env.MONGOLAB_URI);
-
+if (process.env.MONGOLAB_URI === undefined) {
+  mongoose.connect(MONGO_URL);
+} else {
+  mongoose.connect(process.env.MONGOLAB_URI);
+}
 const CODE_SAVING_DIRECTORY = __dirname + "/testing_folder";
 const PDF_SAVING_DIRECTORY = __dirname + "/client/public";
 
@@ -59,13 +60,13 @@ app.use(fileUpload());
 
 app.use(bodyParser.json());
 
-// app.use((req, res, next) => {
-//   res.header("Access-Control-Allow-Origin", "http://localhost:3000");
-//   res.header("Access-Control-Allow-Credentials", "true");
-//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//   res.header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
-//   next();
-// });
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+  next();
+});
 
 // Express only serves static assets in production
 // TODO: think about production and serving static files.
@@ -79,7 +80,7 @@ app.use(express.static(path.resolve(__dirname, "../client/public")));
 
 app.get("/assignments", (req, res) => {
   req.session.touch();
-  res.next();
+  req.next();
 });
 
 app.post("/api/add-assignment", (req, res) => {
@@ -539,10 +540,6 @@ app.get("/api/get-info", (req, res) => {
       res.status(400);
       res.json(INFO_CONSTANTS.SERVER_ERROR);
     });
-});
-
-app.get("*", function(request, response) {
-  response.sendFile(path.resolve(__dirname, "../client/public", "index.html"));
 });
 
 app.listen(app.get("port"), () => {
