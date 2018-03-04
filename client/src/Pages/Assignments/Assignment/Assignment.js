@@ -50,6 +50,7 @@ class Assignment extends Component {
         }
 
         if (json) {
+          // path depends on local and heroku server.
           this.setState({ assignments: json.tasks, pdfPath: `/${json.pdfPath}` });
         }
       });

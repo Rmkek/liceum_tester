@@ -544,6 +544,10 @@ app.get("/api/get-info", (req, res) => {
     });
 });
 
+app.get("*.pdf", (req, res) => {
+  console.log("got request on *.pdf, req: ", req);
+});
+
 app.get("*", function(request, response) {
   response.sendFile(path.resolve(__dirname, "../client/public", "index.html"));
 });
