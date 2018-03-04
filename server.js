@@ -40,7 +40,7 @@ if (process.env.MONGOLAB_URI === undefined) {
   mongoose.connect(process.env.MONGOLAB_URI);
 }
 const CODE_SAVING_DIRECTORY = __dirname + "/testing_folder";
-const PDF_SAVING_DIRECTORY = __dirname + "/client/public";
+const PDF_SAVING_DIRECTORY = __dirname + "../client/public";
 
 app.set("port", process.env.PORT || 3001);
 
@@ -75,9 +75,9 @@ if (process.env.NODE_ENV === "production") {
 }
 
 console.log("currentdir: ", __dirname);
-console.log("resolved path: ", path.resolve(__dirname, "/client/public"));
+console.log("resolved path: ", path.resolve(__dirname, "../client/public"));
 
-app.use(express.static(path.resolve(__dirname, "/client/public")));
+app.use(express.static(path.resolve(__dirname, "../client/public")));
 
 app.get("/assignments", (req, res) => {
   req.session.touch();
@@ -548,7 +548,7 @@ app.get("/api/get-info", (req, res) => {
 app.get("*", (request, response) => {
   console.log("got request on *");
 
-  response.sendFile(path.resolve(__dirname, "/client/public", "index.html"));
+  response.sendFile(path.resolve(__dirname, "../client/public", "index.html"));
 });
 
 app.listen(app.get("port"), () => {
