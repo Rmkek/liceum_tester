@@ -20,7 +20,10 @@ class AddInfo extends Component {
     };
 
     fetch(`api/get-info`, {
-      accept: "application/json",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
       credentials: "include",
       method: "POST",
       body: JSON.stringify({
@@ -74,7 +77,10 @@ class AddInfo extends Component {
       ].innerText;
 
       fetch(`api/add-info`, {
-        accept: "application/json",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
         credentials: "include",
         method: "POST",
         body: JSON.stringify({

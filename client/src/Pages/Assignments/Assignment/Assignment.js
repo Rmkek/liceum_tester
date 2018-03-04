@@ -72,6 +72,10 @@ class Assignment extends Component {
     data.append("assignmentPackName", this.state.assignment_pack_name);
     data.append("assignmentID", e.target.getAttribute("id"));
     fetch(`/api/upload-code`, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
       method: "POST",
       credentials: "include",
       body: data

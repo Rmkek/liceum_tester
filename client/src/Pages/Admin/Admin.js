@@ -8,7 +8,10 @@ class Admin extends Component {
   constructor() {
     super();
     fetch(`api/getNotApprovedUsers`, {
-      accept: "application/json",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
       credentials: "include",
       method: "POST"
     })
@@ -36,7 +39,10 @@ class Admin extends Component {
         let email = each.props.children[1].props.children;
 
         fetch(`api/approveUser`, {
-          accept: "application/json",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
           credentials: "include",
           method: "POST",
           body: JSON.stringify({
