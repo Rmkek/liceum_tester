@@ -38,6 +38,7 @@
     "lint": "eslint .",
     "heroku-postbuild": "cd client/ && npm install && npm install --only=dev --no-shrinkwrap && npm run build"
   },
+  "cacheDirectories": ["node_modules", "client/node_modules"],
   "devDependencies": {
     "@types/express": "^4.11.1",
     "babel-eslint": "^8.2.1",
