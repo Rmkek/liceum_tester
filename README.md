@@ -8,8 +8,8 @@ Checking assignments have never been easier.
 
 Or copy this repository for local development.
 
-- git clone git@github.com:Rmkek/liceum_tester.git
-- npm install
+- ```git clone git@github.com:Rmkek/liceum_tester.git```
+- ```npm install```
 
 Keep in mind that you need installed and running MongoDB instance with database named "liceum_db" and two collections - "assignments", "users".
 
