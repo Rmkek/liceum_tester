@@ -1,3 +1,5 @@
+// Used by dropbox api
+require("isomorphic-fetch");
 const express = require("express");
 const session = require("express-session");
 const fs = require("fs");
@@ -10,8 +12,10 @@ const secureRandom = require("secure-random");
 const base64 = require("base-64");
 
 const bodyParser = require("body-parser");
-
 const path = require("path");
+
+const Dropbox = require("dropbox").Dropbox;
+const dbx = new Dropbox({ accessToken: process.env.DROPBOX_ACCESS_TOKEN });
 
 const { execSync } = require("child_process");
 const uuid = require("uuid/v4");
@@ -40,7 +44,6 @@ if (process.env.MONGODB_URI === undefined) {
   mongoose.connect(process.env.MONGODB_URI);
 }
 const CODE_SAVING_DIRECTORY = __dirname + "/testing_folder";
-const PDF_SAVING_DIRECTORY = __dirname + "/client/build";
 
 app.set("port", process.env.PORT || 3001);
 
@@ -61,7 +64,7 @@ app.use(fileUpload());
 app.use(bodyParser.json());
 
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.header("Access-Control-Allow-Origin", "http://localhost:5000");
   res.header("Access-Control-Allow-Credentials", "true");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
@@ -79,9 +82,9 @@ console.log("resolved static path: ", path.resolve(__dirname, "./client/build"))
 
 app.use(express.static(path.resolve(__dirname, "./client/build")));
 
+//refactor?
 app.post("/api/add-assignment", (req, res) => {
   console.log("Got request on /api/add-assignment, body: ", req.body);
-  console.log("PDF saving directory: ", PDF_SAVING_DIRECTORY);
 
   let name = req.body.assignmentPackName;
   let categories = req.body.assignmentPackCategories.split(",");
@@ -89,46 +92,60 @@ app.post("/api/add-assignment", (req, res) => {
   let tasks = req.body.assignmentNames;
   let tasksArray = [];
 
-  let pdfFileURL = `${PDF_SAVING_DIRECTORY}/${uuid()}.pdf`;
-  pdfFile.mv(pdfFileURL, err => {
-    if (err) console.log("Error happened while saving pdf: ", err);
-  });
+  let pdfFileURL = `/${uuid()}.pdf`;
 
-  let arrLength = tasks instanceof Array ? tasks.length : 1;
+  dbx
+    .filesUpload({ path: pdfFileURL, contents: pdfFile.data })
+    .then(response => {
+      const uploadedFilePath = response.path_display;
+      dbx
+        .sharingCreateSharedLink({ path: uploadedFilePath, short_url: false }, (err, data) => {
+          if (err) console.log("Error happened while uploading assignment to dropbox: ", err);
+          pdfFileURL = data.url.substring(0, data.url.length - 1) + "1";
 
-  for (let i = 0; i < arrLength; i++) {
-    let j = 0;
-    let temp_tests = [];
+          let arrLength = tasks instanceof Array ? tasks.length : 1;
 
-    while (req.body[`test_input_${i + 1}-${j + 1}`] !== undefined) {
-      let input_test = req.body[`test_input_${i + 1}-${j + 1}`];
-      let output_test = req.body[`test_input_${i + 1}-${j + 1}`];
-      temp_tests.push({ input: input_test, output: output_test });
-      j++;
-    }
+          for (let i = 0; i < arrLength; i++) {
+            let j = 0;
+            let temp_tests = [];
 
-    let test_output = new assignmentTaskModel({
-      name: arrLength === 1 ? tasks : tasks[i],
-      tests: temp_tests
-    });
+            while (req.body[`test_input_${i + 1}-${j + 1}`] !== undefined) {
+              let input_test = req.body[`test_input_${i + 1}-${j + 1}`];
+              let output_test = req.body[`test_input_${i + 1}-${j + 1}`];
+              temp_tests.push({ input: input_test, output: output_test });
+              j++;
+            }
 
-    tasksArray.push(test_output);
-  }
+            let test_output = new assignmentTaskModel({
+              name: arrLength === 1 ? tasks : tasks[i],
+              tests: temp_tests
+            });
 
-  new AssignmentPacks({
-    pdfPath: pdfFileURL,
-    name,
-    categories,
-    tasks: tasksArray
-  })
-    .save()
-    .then(success => {
-      res.status(200);
-      res.json(ASSIGNMENT_CONSTANTS.ASSIGNMENT_ADDED);
+            tasksArray.push(test_output);
+          }
+
+          new AssignmentPacks({
+            pdfPath: pdfFileURL,
+            name,
+            categories,
+            tasks: tasksArray
+          })
+            .save()
+            .then(success => {
+              res.status(200);
+              res.json(ASSIGNMENT_CONSTANTS.ASSIGNMENT_ADDED);
+            })
+            .catch(err => {
+              res.status(400);
+              res.json(ASSIGNMENT_CONSTANTS.ASSIGNMENT_NOT_ADDED);
+            });
+        })
+        .catch(err => {
+          console.log("Exception happened when sharing assignment: ", err);
+        });
     })
     .catch(err => {
-      res.status(400);
-      res.json(ASSIGNMENT_CONSTANTS.ASSIGNMENT_NOT_ADDED);
+      console.log("Exception happened when uploading assignment to dropbox: ", err);
     });
 });
 
