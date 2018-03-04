@@ -69,16 +69,16 @@ class AddAssignments extends Component {
       }
     }
 
-    fetch(`api/add-assignment`, {
+    fetch(`${document.location.hostname}/api/add-assignment`, {
       accept: "application/json",
       credentials: "include",
       method: "POST",
       body: data
     })
-    .then(response => response.json())
-    .then(resp => {
-      console.log(resp);
-    });
+      .then(response => response.json())
+      .then(resp => {
+        console.log(resp);
+      });
   }
 
   renderTest(e) {
