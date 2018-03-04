@@ -317,6 +317,7 @@ app.post("/api/approveUser", (req, res) => {
 });
 
 app.post("/api/auth", (req, res) => {
+  console.log("on /api/auth got body: ", req.body);
   req.body.email = base64.decode(req.body.email).toLowerCase();
   req.body.pass = base64.decode(req.body.pass);
 
