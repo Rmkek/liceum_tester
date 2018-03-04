@@ -4,17 +4,17 @@ Checking assignments have never been easier.
 
 ## Getting Started
 
-- Check us out live on heroku: https://protected-sands-59688.herokuapp.com
+* Check us out live on heroku: http://liceum-tester.herokuapp.com/
 
 Or copy this repository for local development.
 
-- ```git clone git@github.com:Rmkek/liceum_tester.git```
-- ```npm install```
+* `git clone git@github.com:Rmkek/liceum_tester.git`
+* `npm install`
 
 Keep in mind that you need installed and running MongoDB instance with database named "liceum_db" and two collections - "assignments", "users".
 
 On some systems you might need to start MongoDB service manually:
- ```systemctl start mongodb.service```
+`systemctl start mongodb.service`
 
 ## Built With
 
@@ -28,7 +28,7 @@ On some systems you might need to start MongoDB service manually:
 
 ## Author
 
-* **Roman Malyshkov** - *FullStack*
+* **Roman Malyshkov** - _FullStack_
 
 ## License
 
