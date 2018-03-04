@@ -34,10 +34,10 @@ const FinishedAssignmentPackSchema = require("./models/schemas/FinishedAssignmen
 const finishedAssignmentPacks = mongoose.model("FinishedAssignmentPack", FinishedAssignmentPackSchema);
 const assignmentTaskModel = mongoose.model("AssignmentTask", AssignmentTaskSchema);
 
-if (process.env.MONGOLAB_URI === undefined) {
+if (process.env.MONGODB_URI === undefined) {
   mongoose.connect(MONGO_URL);
 } else {
-  mongoose.connect(process.env.MONGOLAB_URI);
+  mongoose.connect(process.env.MONGODB_URI);
 }
 const CODE_SAVING_DIRECTORY = __dirname + "/testing_folder";
 const PDF_SAVING_DIRECTORY = __dirname + "/client/build";
