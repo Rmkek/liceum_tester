@@ -18,7 +18,8 @@ class Assignments extends Component {
   componentDidMount = () => {
     fetch(`api/assignments`, {
       accept: "application/json",
-      credentials: "include"
+      credentials: "include",
+      method: "POST"
     })
       .then(response => response.json())
       .then(json => {

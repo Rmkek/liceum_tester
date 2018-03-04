@@ -39,7 +39,8 @@ class App extends Component {
 
     fetch(`api/checkForLogin`, {
       accept: "application/json",
-      credentials: "include"
+      credentials: "include",
+      method: "POST"
     })
       .then(response => response.json())
       .then(resp => {
@@ -96,9 +97,14 @@ class App extends Component {
 
   authCallback = () => {
     if (this.state.email_value !== "" && this.state.password_value !== "" && this.validateEmail(this.state.email_value)) {
-      return fetch(`api/auth?email=${base64.encode(this.state.email_value)}&pass=${base64.encode(this.state.password_value)}`, {
+      return fetch(`api/auth?`, {
         accept: "application/json",
-        credentials: "include"
+        credentials: "include",
+        method: "POST",
+        body: JSON.stringify({
+          email: base64.encode(this.state.email_value),
+          pass: base64.encode(this.state.password_value)
+        })
       }).then(response => {
         if (response.status >= 200 && response.status < 300) {
           console.log("Successfully logged in.");
@@ -146,16 +152,21 @@ class App extends Component {
 
   registerCallback = () => {
     if (this.state.email_value !== "" && this.state.password_value !== "" && this.validateEmail(this.state.email_value)) {
-      return fetch(`api/register?email=${base64.encode(this.state.email_value)}&pass=${base64.encode(this.state.password_value)}`, {
+      return fetch(`api/register}`, {
         accept: "application/json",
+        method: "POST",
+        body: JSON.stringify({
+          email: base64.encode(this.state.email_value),
+          pass: base64.encode(this.state.password_value)
+        }),
         credentials: "include"
       }).then(response => {
         if (response.status === 200) {
           this.setState({
             modal_title: "Registration successful",
-            modal_text: "Wait for teacher to approve your registration, until that you won't be able to log in."
+            modal_text: "Wait for teacher to approve your registration, until that you won't be able to log in.",
+            modal_shown: true
           });
-          this.setState({ modal_shown: true });
           return response;
         } else {
           response.json().then(response => {

@@ -19,9 +19,13 @@ class AddInfo extends Component {
       is_loading: true
     };
 
-    fetch(`api/get-info?email=${this.state.email}`, {
+    fetch(`api/get-info`, {
       accept: "application/json",
-      credentials: "include"
+      credentials: "include",
+      method: "POST",
+      body: JSON.stringify({
+        email: this.state.email
+      })
     })
       .then(response => response.json())
       .then(json => {
@@ -69,9 +73,15 @@ class AddInfo extends Component {
         document.getElementsByClassName("info__grade__select__letter")[0].selectedIndex
       ].innerText;
 
-      fetch(`api/add-info?name=${name}&grade=${grade}&letter=${letter}`, {
+      fetch(`api/add-info`, {
         accept: "application/json",
-        credentials: "include"
+        credentials: "include",
+        method: "POST",
+        body: JSON.stringify({
+          name,
+          grade,
+          letter
+        })
       }).then(response => {
         if (response.status === 200) {
           this.setState({ redirect: true });

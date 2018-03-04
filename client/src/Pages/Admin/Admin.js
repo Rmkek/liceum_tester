@@ -9,7 +9,8 @@ class Admin extends Component {
     super();
     fetch(`api/getNotApprovedUsers`, {
       accept: "application/json",
-      credentials: "include"
+      credentials: "include",
+      method: "POST"
     })
       .then(response => response.json())
       .then(resp => {
@@ -34,9 +35,13 @@ class Admin extends Component {
       if (each.key === event.target.getAttribute("index")) {
         let email = each.props.children[1].props.children;
 
-        fetch(`api/approveUser?email=${email}`, {
+        fetch(`api/approveUser`, {
           accept: "application/json",
-          credentials: "include"
+          credentials: "include",
+          method: "POST",
+          body: JSON.stringify({
+            email
+          })
         }).then(response => {
           if (response.status >= 200 && response.status < 300) {
             this.state.table_body.splice(i, 1);

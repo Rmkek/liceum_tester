@@ -68,6 +68,12 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get("*", (request, response) => {
+  console.log("got request on *");
+
+  response.sendFile(path.resolve(__dirname, "./client/public", "index.html"));
+});
+
 // Express only serves static assets in production
 // TODO: think about production and serving static files.
 if (process.env.NODE_ENV === "production") {
@@ -78,11 +84,6 @@ console.log("currentdir: ", __dirname);
 console.log("resolved path: ", path.resolve(__dirname, "./client/public"));
 
 app.use(express.static(path.resolve(__dirname, "./client/public")));
-
-app.get("/assignments", (req, res) => {
-  req.session.touch();
-  req.next();
-});
 
 app.post("/api/add-assignment", (req, res) => {
   console.log("Got request on /api/add-assignment, body: ", req.body);
@@ -137,7 +138,7 @@ app.post("/api/add-assignment", (req, res) => {
     });
 });
 
-app.get("/api/assignments", (req, res) => {
+app.post("/api/assignments", (req, res) => {
   AssignmentPacks.find({})
     .exec()
     .then(found => {
@@ -238,19 +239,19 @@ app.post("/api/getAssignmentPack", (req, res, next) => {
     });
 });
 
-app.get("/api/register", (req, res) => {
-  req.query.email = base64.decode(req.query.email).toLowerCase();
-  req.query.pass = base64.decode(req.query.pass);
+app.post("/api/register", (req, res) => {
+  req.body.email = base64.decode(req.body.email).toLowerCase();
+  req.body.pass = base64.decode(req.body.pass);
 
   let salt = saltArrayIntoString(secureRandom.randomArray(10));
 
-  if (!validateEmail(req.query.email)) {
+  if (!validateEmail(req.body.email)) {
     res.status(400);
     res.json(AUTH_CONSTANTS.WRONG_EMAIL);
     return;
   }
 
-  User.findOne({ email: req.query.email })
+  User.findOne({ email: req.body.email })
     .exec()
     .then(found => {
       if (found !== null) {
@@ -258,9 +259,9 @@ app.get("/api/register", (req, res) => {
         res.json(AUTH_CONSTANTS.EMAIL_ALREADY_IN_DB);
         return;
       } else {
-        let pass = sha1(salt + req.query.pass);
+        let pass = sha1(salt + req.body.pass);
         new User({
-          email: req.query.email,
+          email: req.body.email,
           password: pass,
           salt: salt,
           isApproved: false,
@@ -285,7 +286,7 @@ app.get("/api/register", (req, res) => {
     });
 });
 
-app.get("/api/checkForLogin", (req, res) => {
+app.post("/api/checkForLogin", (req, res) => {
   if (req.session !== undefined && req.session.isLoggedIn) {
     req.session.touch();
     res.status(200);
@@ -297,9 +298,9 @@ app.get("/api/checkForLogin", (req, res) => {
   }
 });
 
-app.get("/api/approveUser", (req, res) => {
+app.post("/api/approveUser", (req, res) => {
   // TODO: check for user being admin
-  User.findOne({ email: req.query.email })
+  User.findOne({ email: req.body.email })
     .exec()
     .then(user => {
       user.isApproved = true;
@@ -321,19 +322,19 @@ app.get("/api/approveUser", (req, res) => {
     });
 });
 
-app.get("/api/auth", (req, res) => {
-  req.query.email = base64.decode(req.query.email).toLowerCase();
-  req.query.pass = base64.decode(req.query.pass);
+app.post("/api/auth", (req, res) => {
+  req.body.email = base64.decode(req.body.email).toLowerCase();
+  req.body.pass = base64.decode(req.body.pass);
 
-  User.findOne({ email: req.query.email })
+  User.findOne({ email: req.body.email })
     .exec()
     .then(user => {
       if (user !== null) {
         if (user.isApproved) {
           console.log("Found user: ", user);
-          if (sha1(user.salt + req.query.pass) === user.password) {
+          if (sha1(user.salt + req.body.pass) === user.password) {
             req.session.isLoggedIn = true;
-            req.session.email = req.query.email;
+            req.session.email = req.body.email;
 
             res.status(200);
             res.json({ success: AUTH_CONSTANTS.CORRECT_PASSWORD });
@@ -363,7 +364,7 @@ app.get("/api/auth", (req, res) => {
 
 }) */
 
-app.get("/api/getNotApprovedUsers", (req, res) => {
+app.post("/api/getNotApprovedUsers", (req, res) => {
   // TODO check for user being admin
   console.log("Got request on api/getNotApprovedUsers");
   User.find({ isApproved: false })
@@ -385,11 +386,11 @@ app.get("/api/getNotApprovedUsers", (req, res) => {
     });
 });
 
-app.get("/api/add-info", (req, res) => {
+app.post("/api/add-info", (req, res) => {
   //TODO check add-info for user having session. If there is no session, redirect to login page.
-  let name = req.query.name;
-  let grade = req.query.grade;
-  let letter = req.query.letter;
+  let name = req.body.name;
+  let grade = req.body.grade;
+  let letter = req.body.letter;
 
   let updateObject = {
     name,
@@ -524,7 +525,7 @@ app.post("/api/upload-code", (req, res, next) => {
   });
 });
 
-app.get("/api/get-info", (req, res) => {
+app.post("/api/get-info", (req, res) => {
   console.log("session in /api/get-info: ", req.session);
   User.findOne({ email: req.session.email })
     .exec()
@@ -543,12 +544,6 @@ app.get("/api/get-info", (req, res) => {
       res.status(400);
       res.json(INFO_CONSTANTS.SERVER_ERROR);
     });
-});
-
-app.get("*", (request, response) => {
-  console.log("got request on *");
-
-  response.sendFile(path.resolve(__dirname, "./client/public", "index.html"));
 });
 
 app.listen(app.get("port"), () => {
