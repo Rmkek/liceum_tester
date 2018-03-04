@@ -11,10 +11,7 @@ class Assignment extends Component {
 
     this.state = {
       assignments: null,
-      assignment_pack_name: this.props.location.pathname.substring(
-        this.props.location.pathname.lastIndexOf("/") + 1,
-        this.props.location.pathname.length
-      ),
+      assignment_pack_name: this.props.location.pathname,
       tests_status: [],
       assignment_not_found: "",
       assignment_badge: "Not solved."
@@ -51,7 +48,7 @@ class Assignment extends Component {
 
         if (json) {
           // path depends on local and heroku server.
-          this.setState({ assignments: json.tasks, pdfPath: `/client/public/${json.pdfPath}` });
+          this.setState({ assignments: json.tasks, pdfPath: json.pdfPath });
         }
       });
   }
