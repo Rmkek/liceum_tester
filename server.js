@@ -102,7 +102,7 @@ app.post("/api/add-assignment", (req, res) => {
         .sharingCreateSharedLink({ path: uploadedFilePath, short_url: false }, (err, data) => {
           if (err) console.log("Error happened while uploading assignment to dropbox: ", err);
           pdfFileURL = data.url.substring(0, data.url.length - 1) + "1";
-
+          console.log("PDF link created: ", pdfFileURL);
           let arrLength = tasks instanceof Array ? tasks.length : 1;
 
           for (let i = 0; i < arrLength; i++) {
@@ -123,7 +123,11 @@ app.post("/api/add-assignment", (req, res) => {
 
             tasksArray.push(test_output);
           }
-
+          console.log("Ready to save in database!");
+          console.log("pdf: ", pdfFileURL);
+          console.log("name: ", name);
+          console.log("categories: ", categories);
+          console.log("tasks: ", tasksArray);
           new AssignmentPacks({
             pdfPath: pdfFileURL,
             name,
