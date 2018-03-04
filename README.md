@@ -27,7 +27,7 @@ On some systems you might need to start MongoDB service manually:
 
 ## Author
 
-* **Roman Malyshkov** - *FullStack* *
+* **Roman Malyshkov** - *FullStack*
 
 ## License
 
