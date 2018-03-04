@@ -98,6 +98,7 @@ app.post("/api/add-assignment", (req, res) => {
     .filesUpload({ path: pdfFileURL, contents: pdfFile.data })
     .then(response => {
       const uploadedFilePath = response.path_display;
+      console.log("pdf is now on dropbox");
       dbx
         .sharingCreateSharedLink({ path: uploadedFilePath, short_url: false }, (err, data) => {
           if (err) console.log("Error happened while uploading assignment to dropbox: ", err);
@@ -145,10 +146,14 @@ app.post("/api/add-assignment", (req, res) => {
             });
         })
         .catch(err => {
+          res.status(400);
+          res.json(ASSIGNMENT_CONSTANTS.ASSIGNMENT_NOT_ADDED);
           console.log("Exception happened when sharing assignment: ", err);
         });
     })
     .catch(err => {
+      res.status(400);
+      res.json(ASSIGNMENT_CONSTANTS.ASSIGNMENT_NOT_ADDED);
       console.log("Exception happened when uploading assignment to dropbox: ", err);
     });
 });
