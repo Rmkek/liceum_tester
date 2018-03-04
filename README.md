@@ -18,10 +18,11 @@ On some systems you might need to start MongoDB service manually:
 
 ## Built With
 
-* [Node.JS](https://nodejs.org/en/)
+* [Node.JS](https://nodejs.org/en/) - JavaScript runtime
 * [Express](https://expressjs.com/) - Web framework for backend.
 * [NPM](https://www.npmjs.com/) - Neptune's Personal Maid
 * [React](https://reactjs.org/) - Frontend rendering.
+* [Create-React-App](https://github.com/facebook/create-react-app) - Creating react apps with ease.
 * [Bootstrap](https://getbootstrap.com/) - Frontend components.
 * [Font Awesome](https://fontawesome.com/) - Simply amazing icons for every project.
 
@@ -31,4 +32,4 @@ On some systems you might need to start MongoDB service manually:
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
