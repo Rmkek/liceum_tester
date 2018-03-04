@@ -75,8 +75,9 @@ if (process.env.NODE_ENV === "production") {
 }
 
 console.log("currentdir: ", __dirname);
+console.log("resolved path: ", path.resolve(__dirname, "../client/build"));
 
-app.use(express.static(path.resolve(__dirname, "../client/public")));
+app.use(express.static(path.resolve(__dirname, "../client/build")));
 
 app.get("/assignments", (req, res) => {
   req.session.touch();
@@ -546,8 +547,8 @@ app.get("/api/get-info", (req, res) => {
 
 app.get("*", (request, response) => {
   console.log("got request on *, req: ", request);
-  
-  response.sendFile(path.resolve(__dirname, "../client/public", "index.html"));
+
+  response.sendFile(path.resolve(__dirname, "../client/build", "index.html"));
 });
 
 app.listen(app.get("port"), () => {
