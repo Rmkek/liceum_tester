@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { BrowserRouter as Router, Route } from "react-router-dom";
-import registerServiceWorker from "./registerServiceWorker";
+// import registerServiceWorker from "./registerServiceWorker";
 
 import PageContainer from "./Reusables/PageContainer/PageContainer";
 import AdminPage from "./Pages/Admin/AdminPage";
@@ -29,4 +29,4 @@ ReactDOM.render(
   document.getElementById("root")
 );
 
-registerServiceWorker();
+// registerServiceWorker();

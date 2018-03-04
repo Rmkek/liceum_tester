@@ -34,7 +34,7 @@
     "client": "node start-client.js",
     "dev": "echo \"This command has been deprecated. Use 'npm start'\" && exit 1",
     "lint": "eslint .",
-    "heroku-postbuild": "cd client/ && npm install && npm install --only=dev --no-shrinkwrap && npm run build"
+    "heroku-postbuild": "cd client/ && npm run build"
   },
   "devDependencies": {
     "@types/express": "^4.11.1",
@@ -52,5 +52,9 @@
   },
   "engines": {
     "node": "9.6.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Rmkek/liceum_tester.git"
   }
 }
