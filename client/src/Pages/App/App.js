@@ -97,7 +97,7 @@ class App extends Component {
 
   authCallback = () => {
     if (this.state.email_value !== "" && this.state.password_value !== "" && this.validateEmail(this.state.email_value)) {
-      return fetch(`api/auth?`, {
+      return fetch(`api/auth`, {
         accept: "application/json",
         credentials: "include",
         method: "POST",
@@ -152,7 +152,7 @@ class App extends Component {
 
   registerCallback = () => {
     if (this.state.email_value !== "" && this.state.password_value !== "" && this.validateEmail(this.state.email_value)) {
-      return fetch(`api/register}`, {
+      return fetch(`api/register`, {
         accept: "application/json",
         method: "POST",
         body: JSON.stringify({
