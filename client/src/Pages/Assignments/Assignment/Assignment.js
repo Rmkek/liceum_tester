@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
 import { Col, Row, Table, Button, FormGroup, Badge, Input, Label, Alert } from "reactstrap";
+import { Link } from "react-router";
 import * as ASSIGNMENT_CONSTANTS from "../../../Backend_answers/AssignmentConstants";
 import * as CODE_TESTING_CONSTANTS from "../../../Backend_answers/CodeTestingConstants";
 import "./Assignment.css";
@@ -17,7 +18,8 @@ class Assignment extends Component {
       ),
       tests_status: [],
       assignment_not_found: "",
-      assignment_badge: "Not solved."
+      assignment_badge: "Not solved.",
+      pdfPath: ""
     };
 
     fetch("/api/getAssignmentPack", {
@@ -51,7 +53,10 @@ class Assignment extends Component {
 
         if (json) {
           // path depends on local and heroku server.
-          this.setState({ assignments: json.tasks, pdfPath: json.pdfPath });
+          this.setState({
+            assignments: json.tasks,
+            pdfPath: json.pdfPath
+          });
         }
       });
   }
@@ -141,9 +146,7 @@ class Assignment extends Component {
                     {element.solved === true ? <Badge color="success">Solved</Badge> : this.state.assignment_badge}
                   </td>
                   <td>
-                    <a href={this.state.pdfPath} target="_blank" rel="noopener noreferrer">
-                      Click me!
-                    </a>
+                    <Link to={this.state.pdfPath}>Click me!</Link>
                   </td>
                 </tr>
               ))}
