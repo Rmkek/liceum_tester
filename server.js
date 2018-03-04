@@ -84,7 +84,8 @@ app.get("/assignments", (req, res) => {
 });
 
 app.post("/api/add-assignment", (req, res) => {
-  console.log("Got request, body: ", req.body);
+  console.log("Got request on /api/add-assignment, body: ", req.body);
+  console.log("PDF saving directory: ", PDF_SAVING_DIRECTORY);
 
   let name = req.body.assignmentPackName;
   let categories = req.body.assignmentPackCategories.split(",");
@@ -523,6 +524,7 @@ app.post("/api/upload-code", (req, res, next) => {
 });
 
 app.get("/api/get-info", (req, res) => {
+  console.log("session in /api/get-info: ", req.session);
   User.findOne({ email: req.session.email })
     .exec()
     .then(result => {
