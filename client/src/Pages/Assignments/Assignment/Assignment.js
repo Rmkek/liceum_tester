@@ -20,7 +20,7 @@ class Assignment extends Component {
       assignment_badge: "Not solved."
     };
 
-    fetch("http://localhost:3001/api/getAssignmentPack", {
+    fetch("/api/getAssignmentPack", {
       method: "post",
       headers: {
         Accept: "application/json",
@@ -30,8 +30,8 @@ class Assignment extends Component {
       body: JSON.stringify({ assignmentPack: this.state.assignment_pack_name })
     })
       .then(response => response.json())
-        .then(json => {
-          console.log("got json: ", json);
+      .then(json => {
+        console.log("got json: ", json);
         if (json.error && json.error === ASSIGNMENT_CONSTANTS.NO_SUCH_ASSIGNMENT) {
           let errorRender = (
             <Alert color="danger">
@@ -70,7 +70,7 @@ class Assignment extends Component {
     data.append("codeFile", file);
     data.append("assignmentPackName", this.state.assignment_pack_name);
     data.append("assignmentID", e.target.getAttribute("id"));
-    fetch(`http://localhost:3001/api/upload-code`, {
+    fetch(`/api/upload-code`, {
       method: "POST",
       credentials: "include",
       body: data
@@ -118,11 +118,7 @@ class Assignment extends Component {
                 <tr key={element.name}>
                   <th scope="row">{element.name}</th>
                   <td>
-                    <form
-                      id={`uploadForm-${element.id}`}
-                      action="http://localhost:3001/api/upload-code"
-                      method="POST"
-                      encType="multipart/form-data">
+                    <form id={`uploadForm-${element.id}`} action="/api/upload-code" method="POST" encType="multipart/form-data">
                       <FormGroup>
                         <Label for="upload__file-input">Source code</Label>
                         {element.solved ? "" : <Input id="upload__file-input" className="upload__file" type="file" name="sampleFile" />}
