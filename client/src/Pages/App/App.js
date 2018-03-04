@@ -38,7 +38,10 @@ class App extends Component {
     };
 
     fetch(`api/checkForLogin`, {
-      accept: "application/json",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
       credentials: "include",
       method: "POST"
     })
