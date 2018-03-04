@@ -51,7 +51,8 @@
     "prettier-eslint-cli": "^4.7.0"
   },
   "engines": {
-    "node": "9.6.1"
+    "node": "9.6.1",
+    "npm": "5.6.0"
   },
   "repository": {
     "type": "git",

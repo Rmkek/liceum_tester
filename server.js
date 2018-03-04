@@ -75,7 +75,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 console.log("currentdir: ", __dirname);
-console.log("resolved path: ", path.resolve(__dirname, "./client/build"));
+console.log("resolved static path: ", path.resolve(__dirname, "./client/build"));
 
 app.use(express.static(path.resolve(__dirname, "./client/build")));
 
