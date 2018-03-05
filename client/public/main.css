@@ -1,5 +1,5 @@
 .background {
-  background: linear-gradient(150deg, #0074D9, #7fdbff, #39cccc, #01FF70, #FFDC00, #FF851B #F012BE, #B10DC9);
+  background: linear-gradient(150deg, #0074D9, #7fdbff, #39cccc, #01FF70, #FFDC00, #FF851B, #F012BE, #B10DC9);
   background-size: 1600% 1600%;
   background-attachment: fixed;
   -webkit-animation: Background 720s ease infinite;
