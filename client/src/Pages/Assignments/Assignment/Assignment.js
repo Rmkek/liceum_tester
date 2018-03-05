@@ -86,7 +86,7 @@ class Assignment extends Component {
       body: JSON.stringify({
         assignmentPackName: this.state.assignment_pack_name,
         assignmentID: e.target.getAttribute("id"),
-        codeFile: file
+        codeFile: data
       })
     })
       .then(resp => resp.json())
