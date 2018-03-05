@@ -73,7 +73,7 @@ class Assignment extends Component {
     }
     console.log(file);
     data.append("codeFile", file);
-    // data.append("assignmentPackName", this.state.assignment_pack_name);
+    // data.append("assignmentPack  Name", this.state.assignment_pack_name);
     // data.append("assignmentID", e.target.getAttribute("id"));
 
     fetch(`/api/upload-code`, {
@@ -86,7 +86,7 @@ class Assignment extends Component {
       body: JSON.stringify({
         assignmentPackName: this.state.assignment_pack_name,
         assignmentID: e.target.getAttribute("id"),
-        codeFile: data
+        codeFile: file
       })
     })
       .then(resp => resp.json())
