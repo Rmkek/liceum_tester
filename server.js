@@ -442,6 +442,9 @@ app.post("/api/upload-code", (req, res, next) => {
     res.json(CODE_TESTING_CONSTANTS.NO_FILES_UPLOADED);
     next();
   }
+
+  console.log('req.files', req.files);
+  console.log('req.body: ', req.body);
   const file = req.files.codeFile;
   const codeFileName = uuid();
 

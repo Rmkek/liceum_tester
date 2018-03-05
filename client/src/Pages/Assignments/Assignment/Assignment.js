@@ -71,7 +71,7 @@ class Assignment extends Component {
     if (file === undefined) {
       return;
     }
-
+    console.log(file);
     data.append("codeFile", file);
     data.append("assignmentPackName", this.state.assignment_pack_name);
     data.append("assignmentID", e.target.getAttribute("id"));
