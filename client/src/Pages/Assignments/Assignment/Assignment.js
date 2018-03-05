@@ -73,8 +73,9 @@ class Assignment extends Component {
     }
     console.log(file);
     data.append("codeFile", file);
-    data.append("assignmentPackName", this.state.assignment_pack_name);
-    data.append("assignmentID", e.target.getAttribute("id"));
+    // data.append("assignmentPackName", this.state.assignment_pack_name);
+    // data.append("assignmentID", e.target.getAttribute("id"));
+
     fetch(`/api/upload-code`, {
       headers: {
         Accept: "application/json",
@@ -82,7 +83,11 @@ class Assignment extends Component {
       },
       method: "POST",
       credentials: "include",
-      body: data
+      body: JSON.stringify({
+        assignmentPackName: this.state.assignment_pack_name,
+        assignmentID: e.target.getAttribute("id"),
+        codeFile: file
+      })
     })
       .then(resp => resp.json())
       .then(json => {
