@@ -2,6 +2,8 @@
 require("isomorphic-fetch");
 const express = require("express");
 const session = require("express-session");
+const MongoStore = require('connect-mongo')(session);
+
 const fs = require("fs");
 const fileUpload = require("express-fileupload");
 
@@ -46,6 +48,7 @@ app.set("port", process.env.LOCAL_SERVER_PORT || process.env.PORT);
 app.use(opbeat.middleware.express());
 app.use(
   session({
+    story: new MongoStore({ mongooseConnection: mongoose.connection }),
     secret: process.env.SESSION_SECRET_KEY,
     cookie: {
       maxAge: 600000,
