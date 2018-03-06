@@ -13,6 +13,7 @@ import AddAssignments from "./Pages/Admin/AddAssignments/AddAssignments";
 import AddInfo from "./Pages/AddInfo/AddInfo";
 import Assignment from "./Pages/Assignments/Assignment/Assignment";
 import "./bootstrap.css";
+import "./index.css";
 
 ReactDOM.render(
   <Router>
