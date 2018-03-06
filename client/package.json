@@ -1,21 +1,21 @@
 {
   "name": "liceum_tester",
   "version": "0.1.0",
-  "proxy": "http://localhost:3001/",
+  "proxy": "http://localhost:5001/",
   "private": true,
   "dependencies": {
     "base-64": "^0.1.0",
     "bootstrap": "^4.0.0",
-    "jquery": "^3.0.0",
-    "react": "^16.0.0",
-    "react-cookie": "^2.1.1",
-    "react-dom": "^16.0.0",
+    "jquery": "^3.3.1",
+    "react": "^16.2.0",
+    "react-cookie": "^2.1.4",
+    "react-dom": "^16.2.0",
     "react-popper": "^0.8.2",
     "react-router": "^4.2.0",
     "react-router-dom": "^4.2.2",
     "react-scripts": "1.0.14",
     "react-transition-group": "^2.2.1",
-    "reactstrap": "^5.0.0-beta"
+    "reactstrap": "^5.0.0-beta.2"
   },
   "scripts": {
     "start": "react-scripts start",

@@ -20,6 +20,8 @@ const dbx = new Dropbox({ accessToken: process.env.DROPBOX_ACCESS_TOKEN });
 const { execSync } = require("child_process");
 const uuid = require("uuid/v4");
 
+const opbeat = require("opbeat").start();
+
 const app = express();
 
 const ASSIGNMENT_CONSTANTS = require("./client/src/Backend_answers/AssignmentConstants");
@@ -27,8 +29,6 @@ const AUTH_CONSTANTS = require("./client/src/Backend_answers/AuthConstants");
 const INFO_CONSTANTS = require("./client/src/Backend_answers/InfoConstants");
 const APPROVE_USER_CONSTANTS = require("./client/src/Backend_answers/ApproveConstants");
 const CODE_TESTING_CONSTANTS = require("./client/src/Backend_answers/CodeTestingConstants");
-
-const MONGO_URL = "mongodb://localhost:27017/liceum_db";
 
 const User = require("./models/User");
 const AssignmentPacks = require("./models/AssignmentPacks");
@@ -38,18 +38,15 @@ const FinishedAssignmentPackSchema = require("./models/schemas/FinishedAssignmen
 const finishedAssignmentPacks = mongoose.model("FinishedAssignmentPack", FinishedAssignmentPackSchema);
 const assignmentTaskModel = mongoose.model("AssignmentTask", AssignmentTaskSchema);
 
-if (process.env.MONGODB_URI === undefined) {
-  mongoose.connect(MONGO_URL);
-} else {
-  mongoose.connect(process.env.MONGODB_URI);
-}
+mongoose.connect(process.env.MONGODB_URI);
 const CODE_SAVING_DIRECTORY = __dirname + "/testing_folder";
 
-app.set("port", process.env.PORT || 3001);
+app.set("port", process.env.SERVER_PORT);
 
+app.use(opbeat.middleware.express());
 app.use(
   session({
-    secret: "laseghasAHSFJAb3m253JlakLAOSL@*%T*#Y(Y@&AKnmxcoihaerarkjlppoixghdjli;o",
+    secret: process.env.SESSION_SECRET_KEY,
     cookie: {
       maxAge: 600000,
       httpOnly: false
@@ -64,7 +61,7 @@ app.use(fileUpload());
 app.use(bodyParser.json());
 
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:5000");
+  res.header("Access-Control-Allow-Origin", process.env.SERVER_PORT);
   res.header("Access-Control-Allow-Credentials", "true");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
@@ -100,7 +97,8 @@ app.post("/api/add-assignment", (req, res) => {
       const uploadedFilePath = response.path_display;
       console.log("pdf is now on dropbox");
       dbx
-        .sharingCreateSharedLink({ path: uploadedFilePath, short_url: false }).then(data => {
+        .sharingCreateSharedLink({ path: uploadedFilePath, short_url: false })
+        .then(data => {
           pdfFileURL = data.url.substring(0, data.url.length - 1) + "1";
           console.log("PDF link created: ", pdfFileURL);
           let arrLength = tasks instanceof Array ? tasks.length : 1;
@@ -443,8 +441,8 @@ app.post("/api/upload-code", (req, res, next) => {
     next();
   }
 
-  console.log('req.files', req.files);
-  console.log('req.body: ', req.body);
+  console.log("req.files", req.files);
+  console.log("req.body: ", req.body);
   const file = req.files.codeFile;
   const codeFileName = uuid();
 
@@ -571,7 +569,11 @@ app.post("/api/get-info", (req, res) => {
 
 // every get request goes to react
 app.get("*", (request, response) => {
-  response.sendFile(path.resolve(__dirname, "./client/build", "index.html"));
+  if (process.env.LOCAL) {
+    response.sendFile(path.resolve(__dirname, "./client/public", "index.html"));
+  } else {
+    response.sendFile(path.resolve(__dirname, "./client/build", "index.html"));
+  }
 });
 
 app.listen(app.get("port"), () => {
