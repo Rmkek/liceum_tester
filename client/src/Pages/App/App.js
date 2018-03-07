@@ -74,30 +74,30 @@ class App extends Component {
     }
   }
 
-  getEmailValidationState () {
+  getEmailValidationState = () => {
     // eslint-disable-next-line
     let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     if (this.state.email_value === '') return null
     return !!re.test(this.state.email_value)
   };
 
-  getPasswordValidationState () {
+  getPasswordValidationState = () => {
     return this.state.password_value.length === 0 ? null : this.state.password_value.length >= 6
   };
 
-  handleEmailChange (e) {
+  handleEmailChange = (e) => {
     this.setState({ email_value: e.target.value })
   };
 
-  handlePasswordChange (e) {
+  handlePasswordChange = (e) => {
     this.setState({ password_value: e.target.value })
   };
 
-  closeModal (e) {
+  closeModal = (e) => {
     this.setState({ modal_shown: false })
   };
 
-  authCallback () {
+  authCallback = () => {
     if (this.state.email_value !== '' && this.state.password_value !== '' && this.validateEmail(this.state.email_value)) {
       return window.fetch(`api/auth`, {
         headers: {
@@ -155,7 +155,7 @@ class App extends Component {
     }
   };
 
-  registerCallback () {
+  registerCallback = () => {
     if (this.state.email_value !== '' && this.state.password_value !== '' && this.validateEmail(this.state.email_value)) {
       return window.fetch(`api/register`, {
         headers: {
@@ -307,7 +307,7 @@ class App extends Component {
     )
   }
 
-  validateEmail (email) {
+  validateEmail = (email) => {
     // eslint-disable-next-line
     let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(this.state.email_value)

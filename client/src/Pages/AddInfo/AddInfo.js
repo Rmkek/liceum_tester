@@ -52,15 +52,15 @@ class AddInfo extends Component {
     }
   }
 
-  handleFirstNameChange (e) {
+  handleFirstNameChange = (e) => {
     this.setState({ full_name: e.target.value })
   };
 
-  closeModal (e) {
+  closeModal = (e) => {
     this.setState({ modal_shown: false })
   };
 
-  submitAdditionalInfo (e) {
+  submitAdditionalInfo = (e) => {
     if (this.state.full_name === '') {
       this.setState({
         modal_shown: true,

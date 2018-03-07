@@ -56,7 +56,7 @@ class AddAssignments extends Component {
     }
   }
 
-  sendHandler (e) {
+  sendHandler = (e) => {
     e.preventDefault()
     const data = new window.FormData(document.getElementById('mainForm'))
     data.append('file', document.getElementById('pdfTasks'))
@@ -81,7 +81,7 @@ class AddAssignments extends Component {
       })
   }
 
-  renderTest (e) {
+  renderTest = (e) => {
     // this if gets called if we have more than one assignment
     if (e.target.className !== e.target.attributes[1].value) {
       let currentAssignment = e.target.attributes[1].value - 1
@@ -135,7 +135,7 @@ class AddAssignments extends Component {
     }
   }
 
-  wrapInRow (state) {
+  wrapInRow = (state) => {
     let output = []
     state.forEach(assignment => {
       output.push(
@@ -155,7 +155,7 @@ class AddAssignments extends Component {
     return <Col sm={12}>{output}</Col>
   }
 
-  renderAssignment () {
+  renderAssignment = () => {
     let newState = this.state.assignments
     console.log('renderAssignment state: ', newState)
     newState.push([

@@ -32,7 +32,7 @@ class Admin extends Component {
     }
   }
 
-  handleChange (event) {
+  handleChange = (event) => {
     for (let i = 0; i < this.state.table_body.length; i++) {
       let each = this.state.table_body[i]
       if (each.key === event.target.getAttribute('index')) {
@@ -61,7 +61,7 @@ class Admin extends Component {
     }
   };
 
-  renderTableRow (email) {
+  renderTableRow = (email) => {
     this.setState({
       users_in_table: ++this.state.users_in_table
     })
