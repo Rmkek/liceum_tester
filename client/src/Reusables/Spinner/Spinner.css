@@ -96,7 +96,7 @@
   animation: 0.8s linear 0.8s normal none infinite running load;
   background: #ff0095 none repeat scroll 0 0;
 }
-#loader .lading {
+#loader .loading {
   background-image: url("blank.gif");
   background-position: 50% 50%;
   background-repeat: no-repeat;

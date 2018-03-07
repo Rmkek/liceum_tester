@@ -1,15 +1,15 @@
-import React, { Component } from "react";
-import AdminNavBar from "./AdminNavBar";
+import React, { Component } from 'react'
+import AdminNavBar from './AdminNavBar'
 
 class AdminPage extends Component {
-  render() {
+  render () {
     return (
       <div>
         <AdminNavBar />
         {this.props.component}
       </div>
-    );
+    )
   }
 }
 
-export default AdminPage;
+export default AdminPage

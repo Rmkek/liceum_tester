@@ -1,15 +1,15 @@
-import React, { Component } from "react";
-import Footer from "../Footer/Footer";
+import React, { Component } from 'react'
+import Footer from '../Footer/Footer'
 
 class PageContainer extends Component {
-  render() {
+  render () {
     return (
       <div>
         {this.props.component}
         <Footer />
       </div>
-    );
+    )
   }
 }
 
-export default PageContainer;
+export default PageContainer

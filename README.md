@@ -2,6 +2,7 @@
 
 Checking assignments have never been easier.
 
+[![JavaScript Style Guide](https://cdn.rawgit.com/standard/standard/master/badge.svg)](https://github.com/standard/standard)
 ## Getting Started
 
 * Check us out live on heroku: http://liceum-tester.herokuapp.com/
