@@ -3,9 +3,8 @@ const Schema = mongoose.Schema
 const finishedAssignmentPacks = require('./schemas/FinishedAssignmentPacks')
 
 const userSchema = Schema({
-  email: { type: String, required: true },
-  password: { type: String, required: true },
-  salt: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password_hash: { type: String, required: true },
   isApproved: { type: Boolean, required: true },
   isAdmin: { type: Boolean, required: false, default: false },
   additional_info: {

@@ -13,13 +13,13 @@ import {
   ModalFooter,
   InputGroup,
   InputGroupAddon,
-  InputGroupText
+  InputGroupText,
+  Container
 } from 'reactstrap'
 import './App.css'
 import { Redirect } from 'react-router-dom'
 import * as AUTH_CONSTANTS from '../../Backend_answers/AuthConstants'
 import Spinner from '../../Reusables/Spinner/Spinner'
-const base64 = require('base-64')
 
 class App extends Component {
   constructor () {
@@ -107,8 +107,8 @@ class App extends Component {
         credentials: 'include',
         method: 'POST',
         body: JSON.stringify({
-          email: base64.encode(this.state.email_value),
-          pass: base64.encode(this.state.password_value)
+          email: this.state.email_value,
+          pass: this.state.password_value
         })
       }).then(response => {
         if (response.status >= 200 && response.status < 300) {
@@ -141,8 +141,8 @@ class App extends Component {
                   modal_title: 'Error',
                   modal_text: 'Something really, really bad mumbo-jumbo happened. Immediately report it to ',
                   vk_link: (
-                    <a href='https://vk.com/rmk1337' rel='noopener noreferrer' target='_blank'>
-                      Kirill Pavidlov
+                    <a href='mailto:malyshkov.roman@gmail.com?subject=Liceum Tester'>
+                    Roman Malyshkov
                     </a>
                   )
                 })
@@ -165,8 +165,8 @@ class App extends Component {
         credentials: 'include',
         method: 'POST',
         body: JSON.stringify({
-          email: base64.encode(this.state.email_value),
-          pass: base64.encode(this.state.password_value)
+          email: this.state.email_value,
+          pass: this.state.password_value
         })
       }).then(response => {
         if (response.status === 200) {
@@ -197,8 +197,8 @@ class App extends Component {
                   modal_title: 'Error',
                   modal_text: 'Some backend exception happened. Report this incident to your teacher or to ',
                   vk_link: (
-                    <a href='https://vk.com/rmk1337' rel='noopener noreferrer' target='_blank'>
-                      Kirill Pavidlov
+                    <a href='mailto:malyshkov.roman@gmail.com?subject=Liceum Tester'>
+                    Roman Malyshkov
                     </a>
                   )
                 })
@@ -208,8 +208,8 @@ class App extends Component {
                   modal_title: 'Error',
                   modal_text: 'Something really, really bad mumbo-jumbo happened. Immediately report it to ',
                   vk_link: (
-                    <a href='https://vk.com/rmk1337' rel='noopener noreferrer' target='_blank'>
-                      Kirill Pavidlov
+                    <a href='mailto:malyshkov.roman@gmail.com?subject=Liceum Tester'>
+                    Roman Malyshkov
                     </a>
                   )
                 })
@@ -251,10 +251,9 @@ class App extends Component {
             </ModalFooter>
           </Modal>
         </div>
-        <Col xs='3' md='12'>
-          <Row className='auth-container__margin'>
-            <Col lg={{ size: 2, offset: 5 }} md={{ size: 4, offset: 4 }} xs={{ size: 2, offset: 6 }} className='auth-container'>
-              {/* bg-aqua */}
+        <Container>
+          <Row className='vertical-center'>
+            <Col xl={{size: 4, offset: 4}} lg={{ size: 4, offset: 4 }} md={{ size: 5, offset: 4 }} sm={{size: 6, offset: 3}} xs={{size: 8, offset: 2}} className='auth-container'>
               <Form>
                 <FormGroup>
                   <Label for='email_input'> Enter your E-mail address: </Label>
@@ -302,7 +301,7 @@ class App extends Component {
               </Button>
             </Col>
           </Row>
-        </Col>
+        </Container>
       </div>
     )
   }

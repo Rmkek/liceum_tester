@@ -1,27 +1,30 @@
-// Used by dropbox api
-require('isomorphic-fetch')
+require('isomorphic-fetch') // used by dropbox api
+// server must-haves
 const express = require('express')
 const session = require('express-session')
 const MongoStore = require('connect-mongo')(session)
+const mongoose = require('mongoose')
+const bodyParser = require('body-parser')
+const path = require('path')
+const uuid = require('uuid/v4')
 
+// working with file-system and saving user code
 const fs = require('fs')
 const fileUpload = require('express-fileupload')
 
-const mongoose = require('mongoose')
+// authentification and registration
+const passport = require('passport')
+const LocalStrategy = require('passport-local').Strategy
+const bcrypt = require('bcrypt')
 
-const sha1 = require('sha1')
-const secureRandom = require('secure-random')
-const base64 = require('base-64')
-
-const bodyParser = require('body-parser')
-const path = require('path')
-
+// dropbox integration
 const Dropbox = require('dropbox').Dropbox
 const dbx = new Dropbox({ accessToken: process.env.DROPBOX_ACCESS_TOKEN })
 
+// executing user code
 const { execSync } = require('child_process')
-const uuid = require('uuid/v4')
 
+// app managemenent
 const opbeat = require('opbeat').start()
 
 const app = express()
@@ -45,33 +48,70 @@ mongoose.connect(process.env.MONGODB_URI)
 const CODE_SAVING_DIRECTORY = path.resolve(__dirname, './testing_folder')
 console.log('Resolved code saving directory: ', CODE_SAVING_DIRECTORY)
 
+if (!fs.existsSync(CODE_SAVING_DIRECTORY)) {
+  fs.mkdirSync(CODE_SAVING_DIRECTORY)
+}
+
 app.set('port', process.env.LOCAL_SERVER_PORT || process.env.PORT)
 
 app.use(opbeat.middleware.express())
 app.use(
   session({
-    story: new MongoStore({ mongooseConnection: mongoose.connection }),
+    store: new MongoStore({ mongooseConnection: mongoose.connection }),
     secret: process.env.SESSION_SECRET_KEY,
     cookie: {
-      maxAge: 600000,
+      maxAge: 10 * 60 * 1000,
       httpOnly: false
     },
-    resave: true,
+    resave: false,
     saveUninitialized: true
   })
 )
+app.use(passport.initialize())
+app.use(passport.session())
+passport.use(new LocalStrategy(
+  {
+    usernameField: 'email',
+    passwordField: 'pass'
+  },
+  (email, password, done) => {
+    User.findOne({ email: email })
+      .exec()
+      .then(user => {
+        if (!user) {
+          return done(null, false)
+        }
+
+        bcrypt.compare(password, user.password_hash, (err, isValid) => {
+          if (err) return done(err)
+          if (!isValid) return done(null, false)
+          return done(null, user)
+        })
+      })
+      .catch(err => {
+        console.log('Error in pasport strategy', err)
+        return done(err)
+      })
+  }
+))
+
+passport.serializeUser((user, cb) => {
+  console.log('SERIALIZING USER: ', user)
+  cb(null, user.email)
+})
+
+passport.deserializeUser((email, done) => {
+  User.findOne({email: email}).exec().then(user => {
+    done(false, user)
+  })
+    .catch(err => {
+      console.log('Error while deserializing: ', err)
+      done(err)
+    })
+})
 
 app.use(fileUpload())
-
 app.use(bodyParser.json())
-
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', process.env.LOCAL_SERVER_PORT || process.env.PORT)
-  res.header('Access-Control-Allow-Credentials', 'true')
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
-  res.header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, OPTIONS')
-  next()
-})
 
 // Express only serves static assets in production
 // TODO: think about production and serving static files.
@@ -183,8 +223,6 @@ app.post('/api/assignments', (req, res) => {
 
 app.post('/api/getAssignmentPack', (req, res, next) => {
   // redirecting when no session present
-  console.log('got request on /api/getAssignmentPack, req: ', req.body)
-  console.log('requested user: ', req.session)
 
   if (req.body.assignmentPack === undefined) {
     res.status(400)
@@ -205,7 +243,7 @@ app.post('/api/getAssignmentPack', (req, res, next) => {
         next()
       }
 
-      User.findOne({ email: req.session.email })
+      User.findOne({ email: req.session.passport.user })
         .exec()
         .then(user => {
           console.log('found user: ', user)
@@ -249,7 +287,7 @@ app.post('/api/getAssignmentPack', (req, res, next) => {
                 output.tasks.push({
                   name: task.name,
                   id: task._id,
-                  solved: !!assignments.finishedAssignments.includes(task._id.toString())
+                  solved: assignments.finishedAssignments.includes(task._id.toString())
                 })
               })
 
@@ -263,11 +301,9 @@ app.post('/api/getAssignmentPack', (req, res, next) => {
 })
 
 app.post('/api/register', (req, res) => {
-  req.body.email = base64.decode(req.body.email).toLowerCase()
-  req.body.pass = base64.decode(req.body.pass)
+  req.body.email = req.body.email.toLowerCase()
 
-  let salt = saltArrayIntoString(secureRandom.randomArray(10))
-
+  // if email is not valid throw error
   if (!validateEmail(req.body.email)) {
     res.status(400)
     res.json(AUTH_CONSTANTS.WRONG_EMAIL)
@@ -277,48 +313,43 @@ app.post('/api/register', (req, res) => {
   User.findOne({ email: req.body.email })
     .exec()
     .then(found => {
+      // if user is already registered throw error
       if (found !== null) {
         res.status(400)
         res.json(AUTH_CONSTANTS.EMAIL_ALREADY_IN_DB)
       } else {
-        let pass = sha1(salt + req.body.pass)
-        new User({
-          email: req.body.email,
-          password: pass,
-          salt: salt,
-          isApproved: false,
-          isAdmin: false,
-          created_at: Date.now()
-        })
-          .save()
-          .then(success => {
-            res.status(200)
-            res.json(AUTH_CONSTANTS.USER_ADDED_IN_DB)
-          })
-          .catch(err => {
+        bcrypt.hash(req.body.pass, parseInt(process.env.SALT_ROUNDS), (err, hash) => {
+          if (err) {
             console.log('Error happened at /api/register: ', err)
             res.status(400)
             res.json(AUTH_CONSTANTS.CANT_INSERT_USER_IN_COLLECTION)
-          })
+          } else {
+            new User({
+              email: req.body.email,
+              password_hash: hash,
+              isApproved: false,
+              isAdmin: false,
+              created_at: Date.now()
+            })
+              .save()
+              .then(success => {
+                res.status(200)
+                res.json(AUTH_CONSTANTS.USER_ADDED_IN_DB)
+              })
+              .catch(err => {
+                console.log('Error happened at /api/register: ', err)
+                res.status(400)
+                res.json(AUTH_CONSTANTS.CANT_INSERT_USER_IN_COLLECTION)
+              })
+          }
+        })
       }
-    })
-    .catch(err => {
+    }
+    ).catch(err => {
       console.log('Error at /api/register. ', err)
       res.status(400)
       res.json(AUTH_CONSTANTS.SERVER_ERROR)
     })
-})
-
-app.post('/api/checkForLogin', (req, res) => {
-  if (req.session !== undefined && req.session.isLoggedIn) {
-    req.session.touch()
-    res.status(200)
-    res.json(AUTH_CONSTANTS.CORRECT_PASSWORD)
-  } else {
-    req.session.isLoggedIn = false
-    res.status(200)
-    res.json(AUTH_CONSTANTS.NOT_LOGGED_IN)
-  }
 })
 
 app.post('/api/approveUser', (req, res) => {
@@ -346,41 +377,27 @@ app.post('/api/approveUser', (req, res) => {
     })
 })
 
-app.post('/api/auth', (req, res) => {
-  console.log('on /api/auth got body: ', req.body)
-  req.body.email = base64.decode(req.body.email).toLowerCase()
-  req.body.pass = base64.decode(req.body.pass)
-
-  User.findOne({ email: req.body.email })
-    .exec()
-    .then(user => {
-      if (user !== null) {
-        if (user.isApproved) {
-          console.log('Found user: ', user)
-          if (sha1(user.salt + req.body.pass) === user.password) {
-            req.session.isLoggedIn = true
-            req.session.email = req.body.email
-
-            res.status(200)
-            res.json({ success: AUTH_CONSTANTS.CORRECT_PASSWORD })
-          } else {
-            res.status(400)
-            res.json({ error: AUTH_CONSTANTS.WRONG_PASSWORD })
-          }
-        } else {
-          res.status(400)
-          res.json({ error: AUTH_CONSTANTS.USER_IS_NOT_APPROVED })
-        }
-      } else {
-        res.status(400)
-        res.json({ error: AUTH_CONSTANTS.USER_IS_NOT_REGISTERED })
-      }
-    })
-    .catch(err => {
+app.post('/api/auth', (req, res, next) => {
+  req.body.email = req.body.email.toLowerCase()
+  passport.authenticate('local', (err, user) => {
+    if (err) {
       console.log('Error at /api/auth', err)
       res.status(400)
-      res.json({ error: AUTH_CONSTANTS.SERVER_ERROR })
+      return res.json({ error: AUTH_CONSTANTS.SERVER_ERROR })
+    }
+
+    if (!user) {
+      res.status(400)
+      return res.json({ error: AUTH_CONSTANTS.USER_IS_NOT_REGISTERED })
+    }
+
+    req.logIn(user, function (err) {
+      if (err) { return next(err) }
+      console.log('user in /api/auth/: ', user)
+      res.status(200)
+      return res.json({ success: AUTH_CONSTANTS.CORRECT_PASSWORD })
     })
+  })(req, res, next)
 })
 
 /* app.get('/admin', (req, res) => {
@@ -423,7 +440,7 @@ app.post('/api/add-info', (req, res) => {
     letter
   }
 
-  User.findOneAndUpdate({ email: req.session.email }, { $set: { additional_info: updateObject } }, { new: true }, (err, doc) => {
+  User.findOneAndUpdate({ email: req.session.passport.user }, { $set: { additional_info: updateObject } }, { new: true }, (err, doc) => {
     if (err) {
       console.log('Error at /api/add-info when updating user', err)
       res.status(400)
@@ -488,35 +505,41 @@ app.post('/api/upload-code', (req, res, next) => {
     let testIterator = 1
 
     task.tests.every(test => {
-      let output = execSync(
-        `cd ${CODE_SAVING_DIRECTORY} && g++ ${codeFileName}.cpp -o ${codeFileName}.out && ./${codeFileName}.out ${test.input}`,
-        'utf8'
-      ).toString()
+      try {
+        let output = execSync(
+          `cd ${CODE_SAVING_DIRECTORY} && g++ ${codeFileName}.cpp -o ${codeFileName}.out && ./${codeFileName}.out ${test.input}`,
+          'utf8'
+        ).toString()
 
-      if (output !== test.output) {
-        console.log(`Failed on test #${testIterator}`)
+        if (output !== test.output) {
+          console.log(`Failed on test #${testIterator}`)
 
-        fs.unlink(`${CODE_SAVING_DIRECTORY}/${codeFileName}.cpp`, err => {
-          if (err) console.log('Error happened when deleting code: ', err)
-          console.log(`${codeFileName}.cpp was deleted`)
-        })
-        fs.unlink(`${CODE_SAVING_DIRECTORY}/${codeFileName}.out`, err => {
-          if (err) console.log('Error happened when deleting binary: ', err)
-          console.log(`${codeFileName}.out was deleted`)
-        })
+          fs.unlink(`${CODE_SAVING_DIRECTORY}/${codeFileName}.cpp`, err => {
+            if (err) console.log('Error happened when deleting code: ', err)
+            console.log(`${codeFileName}.cpp was deleted`)
+          })
+          fs.unlink(`${CODE_SAVING_DIRECTORY}/${codeFileName}.out`, err => {
+            if (err) console.log('Error happened when deleting binary: ', err)
+            console.log(`${codeFileName}.out was deleted`)
+          })
 
+          res.status(500)
+          CODE_TESTING_CONSTANTS.TESTS_FAILED.on_test = testIterator
+          res.json(CODE_TESTING_CONSTANTS.TESTS_FAILED)
+          next()
+          return false
+        }
+
+        testIterator++
+        return true
+      } catch (e) {
+        console.log('Error happened while executing code.', e)
         res.status(500)
-        CODE_TESTING_CONSTANTS.TESTS_FAILED.on_test = testIterator
-        res.json(CODE_TESTING_CONSTANTS.TESTS_FAILED)
-        next()
-        return false
+        res.json(CODE_TESTING_CONSTANTS.CODE_ERROR)
       }
-
-      testIterator++
-      return true
     })
 
-    User.findOne({ email: req.session.email })
+    User.findOne({ email: req.session.passport.user })
       .exec()
       .then(user => {
         console.log('(first time) user.assignments: ', user.assignments)
@@ -528,13 +551,18 @@ app.post('/api/upload-code', (req, res, next) => {
 
           user.assignments = finishedAssignments
         } else {
-          if (user.assignments.finishedAssignments.includes(assignmentID)) {
-            res.status(400)
-            res.status(CODE_TESTING_CONSTANTS.TESTS_ALREADY_PASSED)
-            next()
+          for (let i = 0; i < user.assignments.length; i++) {
+            if (user.assignments[i].packName === assignmentPack) {
+              if (user.assignments.finishedAssignments.includes(assignmentID)) {
+                res.status(400)
+                res.status(CODE_TESTING_CONSTANTS.TESTS_ALREADY_PASSED)
+                next()
+              } else {
+                user.assignments.finishedAssignments.push(assignmentID)
+              }
+            }
+            break
           }
-
-          user.assignments.finishedAssignments.push(assignmentID)
         }
 
         user
@@ -554,25 +582,24 @@ app.post('/api/upload-code', (req, res, next) => {
   })
 })
 
+app.post('/api/checkForLogin', (req, res) => {
+  if (req.user) {
+    res.status(200)
+    res.json(AUTH_CONSTANTS.CORRECT_PASSWORD)
+  } else {
+    res.status(200)
+    res.json(AUTH_CONSTANTS.NOT_LOGGED_IN)
+  }
+})
+
 app.post('/api/get-info', (req, res) => {
-  console.log('session in /api/get-info: ', req.session)
-  User.findOne({ email: req.session.email })
-    .exec()
-    .then(result => {
-      console.log('In /api/get-info, result: ', result)
-      if (result === null || result === undefined || result.additional_info === undefined) {
-        res.status(400)
-        res.json(INFO_CONSTANTS.INFO_NOT_ADDED)
-      } else {
-        res.status(200)
-        res.json({ success: INFO_CONSTANTS.INFO_ADDED, name: result.additional_info.name })
-      }
-    })
-    .catch(err => {
-      console.log('Error happened at /api/get-info', err)
-      res.status(400)
-      res.json(INFO_CONSTANTS.SERVER_ERROR)
-    })
+  if (req.user === null || req.user.additional_info === undefined || req.user.additional_info === undefined) {
+    res.status(200)
+    res.json(INFO_CONSTANTS.INFO_NOT_ADDED)
+  } else {
+    res.status(200)
+    res.json({ success: INFO_CONSTANTS.INFO_ADDED, name: req.user.additional_info.name })
+  }
 })
 
 // every get request goes to react
@@ -592,12 +619,4 @@ app.disable('etag')
 const validateEmail = email => {
   var re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
   return re.test(email)
-}
-
-const saltArrayIntoString = array => {
-  let str = ''
-  array.forEach(e => {
-    str = str.concat(e)
-  }, this)
-  return str
 }

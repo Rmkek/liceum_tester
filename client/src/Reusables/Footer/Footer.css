@@ -24,6 +24,12 @@
   animation-play-state: running;
 }
 
+@media  (max-width: 426px) {
+  .footer {
+    font-size: 16px;
+  }
+}
+
 /* Heart beat animation */
 @keyframes beat{
   from {color: #000}

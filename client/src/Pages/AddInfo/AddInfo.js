@@ -25,10 +25,7 @@ class AddInfo extends Component {
         'Content-Type': 'application/json'
       },
       credentials: 'include',
-      method: 'POST',
-      body: JSON.stringify({
-        email: this.state.email
-      })
+      method: 'POST'
     })
       .then(response => response.json())
       .then(json => {

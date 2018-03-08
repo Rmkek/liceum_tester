@@ -2,18 +2,9 @@
   position: absolute;
 }
 
-.auth-buttons {
-  margin: auto;
-  margin-top: 1em;
-  width: 15em;
-  display: inline-block;
-}
-
 .auth-container {
-  padding: 1em;
+  padding: 1rem;
   background-color: rgba(255,255,255,0.5);
-
-   /* shadows and rounded borders */
    -moz-border-radius: 5px;
    -webkit-border-radius: 5px;
    border-radius: 5px;
@@ -22,6 +13,10 @@
    box-shadow: 0px 5px 5px rgba(0, 0, 0, 0.3);
 }
 
-.auth-container__margin {
-  margin-top: 15em;
+.vertical-center {
+  min-height: 100;  /* Fallback for browsers do NOT support vh unit */
+  min-height: 100vh; /* These two lines are counted as one :-)       */
+
+  display: flex;
+  align-items: center;
 }

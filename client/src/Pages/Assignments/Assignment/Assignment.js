@@ -60,7 +60,7 @@ class Assignment extends Component {
       })
   }
 
-  onSendClick (e) {
+  onSendClick = (e) => {
     e.persist()
     let file = document.getElementById(`uploadForm-${e.target.getAttribute('id')}`).getElementsByClassName('upload__file')[0].files[0]
     let data = new window.FormData()
@@ -71,9 +71,8 @@ class Assignment extends Component {
     if (file === undefined) {
       return
     }
-    console.log(file)
     data.append('codeFile', file)
-    data.append('assignmentPack  Name', this.state.assignment_pack_name)
+    data.append('assignmentPackName', this.state.assignment_pack_name)
     data.append('assignmentID', e.target.getAttribute('id'))
 
     window.fetch(`/api/upload-code`, {
