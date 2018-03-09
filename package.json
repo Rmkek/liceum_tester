@@ -67,7 +67,8 @@
     "npm": "5.6.0"
   },
   "standard": {
-    "parser": "babel-eslint"
+    "parser": "babel-eslint",
+    "plugins": ["html"]
   },
   "repository": {
     "type": "git",

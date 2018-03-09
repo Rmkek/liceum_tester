@@ -16,13 +16,18 @@ const fileUpload = require('express-fileupload')
 const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
 const bcrypt = require('bcrypt')
+const checkLoginMiddleware = require('./checkLoginMiddleware')
 
 // dropbox integration
 const Dropbox = require('dropbox').Dropbox
-const dbx = new Dropbox({ accessToken: process.env.DROPBOX_ACCESS_TOKEN })
+const dbx = new Dropbox({
+  accessToken: process.env.DROPBOX_ACCESS_TOKEN
+})
 
 // executing user code
-const { execSync } = require('child_process')
+const {
+  execSync
+} = require('child_process')
 
 // app managemenent
 const opbeat = require('opbeat').start()
@@ -57,7 +62,9 @@ app.set('port', process.env.LOCAL_SERVER_PORT || process.env.PORT)
 app.use(opbeat.middleware.express())
 app.use(
   session({
-    store: new MongoStore({ mongooseConnection: mongoose.connection }),
+    store: new MongoStore({
+      mongooseConnection: mongoose.connection
+    }),
     secret: process.env.SESSION_SECRET_KEY,
     cookie: {
       maxAge: 10 * 60 * 1000,
@@ -69,39 +76,48 @@ app.use(
 )
 app.use(passport.initialize())
 app.use(passport.session())
-passport.use(new LocalStrategy(
-  {
-    usernameField: 'email',
-    passwordField: 'pass'
-  },
-  (email, password, done) => {
-    User.findOne({ email: email })
-      .exec()
-      .then(user => {
-        if (!user) {
-          return done(null, false)
-        }
+passport.use(new LocalStrategy({
+  usernameField: 'email',
+  passwordField: 'pass'
+},
+(email, password, done) => {
+  User.findOne({
+    email: email
+  })
+    .exec()
+    .then(user => {
+      if (!user) {
+        return done(null, false)
+      }
 
-        bcrypt.compare(password, user.password_hash, (err, isValid) => {
-          if (err) return done(err)
-          if (!isValid) return done(null, false)
-          return done(null, user)
+      if (!user.isApproved) {
+        return done(null, {
+          isApproved: false
         })
+      }
+
+      bcrypt.compare(password, user.password_hash, (err, isValid) => {
+        if (err) return done(err)
+        if (!isValid) return done(null, false)
+        return done(null, user)
       })
-      .catch(err => {
-        console.log('Error in pasport strategy', err)
-        return done(err)
-      })
-  }
+    })
+    .catch(err => {
+      console.log('Error in pasport strategy', err)
+      return done(err)
+    })
+}
 ))
 
 passport.serializeUser((user, cb) => {
-  console.log('SERIALIZING USER: ', user)
-  cb(null, user.email)
+  console.log('serializing user: ', user)
+  cb(null, user)
 })
 
-passport.deserializeUser((email, done) => {
-  User.findOne({email: email}).exec().then(user => {
+passport.deserializeUser((user, done) => {
+  User.findById({
+    _id: user._id
+  }).exec().then(user => {
     done(false, user)
   })
     .catch(err => {
@@ -124,8 +140,10 @@ console.log('resolved static path: ', path.resolve(__dirname, './client/build'))
 
 app.use(express.static(path.resolve(__dirname, './client/build')))
 
+app.get('/admin*', checkLoginMiddleware({user: 'ADMIN'}))
+
 // refactor?
-app.post('/api/add-assignment', (req, res) => {
+app.post('/api/add-assignment', checkLoginMiddleware({user: 'ADMIN'}), (req, res) => {
   console.log('Got request on /api/add-assignment, body: ', req.body)
 
   let name = req.body.assignmentPackName
@@ -137,12 +155,18 @@ app.post('/api/add-assignment', (req, res) => {
   let pdfFileURL = `/${uuid()}.pdf`
 
   dbx
-    .filesUpload({ path: pdfFileURL, contents: pdfFile.data })
+    .filesUpload({
+      path: pdfFileURL,
+      contents: pdfFile.data
+    })
     .then(response => {
       const uploadedFilePath = response.path_display
       console.log('pdf is now on dropbox')
       dbx
-        .sharingCreateSharedLink({ path: uploadedFilePath, short_url: false })
+        .sharingCreateSharedLink({
+          path: uploadedFilePath,
+          short_url: false
+        })
         .then(data => {
           pdfFileURL = data.url.substring(0, data.url.length - 1) + '1'
           console.log('PDF link created: ', pdfFileURL)
@@ -155,7 +179,10 @@ app.post('/api/add-assignment', (req, res) => {
             while (req.body[`test_input_${i + 1}-${j + 1}`] !== undefined) {
               let inputTest = req.body[`test_input_${i + 1}-${j + 1}`]
               let outputTest = req.body[`test_input_${i + 1}-${j + 1}`]
-              tempTests.push({ input: inputTest, output: outputTest })
+              tempTests.push({
+                input: inputTest,
+                output: outputTest
+              })
               j++
             }
 
@@ -232,7 +259,9 @@ app.post('/api/getAssignmentPack', (req, res, next) => {
 
   const assignmentPack = req.body.assignmentPack
 
-  AssignmentPacks.findOne({ name: assignmentPack })
+  AssignmentPacks.findOne({
+    name: assignmentPack
+  })
     .exec()
     .then(found => {
       console.log('found assignments: ', found)
@@ -243,60 +272,63 @@ app.post('/api/getAssignmentPack', (req, res, next) => {
         next()
       }
 
-      User.findOne({ email: req.session.passport.user })
-        .exec()
-        .then(user => {
-          console.log('found user: ', user)
+      console.log('req.user: ', req.user)
 
-          const userAssignments = user.assignments
+      const userAssignments = req.user.assignments
 
-          let output = {
-            pdfPath: found.pdfPath,
-            tasks: []
-          }
-          // checking that user has atleast some solved assignments
-          if (userAssignments === null || userAssignments === undefined || userAssignments.length === 0) {
-            found.tasks.forEach(task => {
-              output.tasks.push({ name: task.name, id: task._id, solved: false })
-            })
-
-            res.status(200)
-            res.json(output)
-            next()
-          } else {
-            let assignments = null
-
-            // checking that user has current assignment solved
-            for (let i = 0; i < userAssignments.length; i++) {
-              if (userAssignments[i].packName === assignmentPack) {
-                assignments = userAssignments[i]
-              }
-            }
-
-            // user does not solved this assignmentPack yet, returning him all assignments as non-solved.
-            if (assignments === null) {
-              found.tasks.forEach(task => {
-                output.tasks.push({ name: task.name, id: task._id, solved: false })
-              })
-
-              res.status(200)
-              res.json(output)
-              next()
-            } else {
-              found.tasks.forEach(task => {
-                output.tasks.push({
-                  name: task.name,
-                  id: task._id,
-                  solved: assignments.finishedAssignments.includes(task._id.toString())
-                })
-              })
-
-              res.status(200)
-              res.json(output)
-              next()
-            }
-          }
+      let output = {
+        pdfPath: found.pdfPath,
+        tasks: []
+      }
+      // checking that user has atleast some solved assignments
+      if (userAssignments === null || userAssignments === undefined || userAssignments.length === 0) {
+        found.tasks.forEach(task => {
+          output.tasks.push({
+            name: task.name,
+            id: task._id,
+            solved: false
+          })
         })
+        res.status(200)
+        res.json(output)
+        next()
+      } else {
+        let assignments = null
+
+        // checking that user has current assignment solved
+        for (let i = 0; i < userAssignments.length; i++) {
+          if (userAssignments[i].packName === assignmentPack) {
+            assignments = userAssignments[i]
+          }
+        }
+
+        // user does not solved this assignmentPack yet, returning him all assignments as non-solved.
+        if (assignments === null) {
+          found.tasks.forEach(task => {
+            output.tasks.push({
+              name: task.name,
+              id: task._id,
+              solved: false
+            })
+          })
+
+          res.status(200)
+          res.json(output)
+          next()
+        } else {
+          found.tasks.forEach(task => {
+            output.tasks.push({
+              name: task.name,
+              id: task._id,
+              solved: assignments.finishedAssignments.includes(task._id.toString())
+            })
+          })
+
+          res.status(200)
+          res.json(output)
+          next()
+        }
+      }
     })
 })
 
@@ -310,7 +342,9 @@ app.post('/api/register', (req, res) => {
     return
   }
 
-  User.findOne({ email: req.body.email })
+  User.findOne({
+    email: req.body.email
+  })
     .exec()
     .then(found => {
       // if user is already registered throw error
@@ -344,17 +378,18 @@ app.post('/api/register', (req, res) => {
           }
         })
       }
-    }
-    ).catch(err => {
+    }).catch(err => {
       console.log('Error at /api/register. ', err)
       res.status(400)
       res.json(AUTH_CONSTANTS.SERVER_ERROR)
     })
 })
 
-app.post('/api/approveUser', (req, res) => {
+app.post('/api/approveUser', checkLoginMiddleware({user: 'ADMIN'}), (req, res) => {
   // TODO: check for user being admin
-  User.findOne({ email: req.body.email })
+  User.findOne({
+    email: req.body.email
+  })
     .exec()
     .then(user => {
       user.isApproved = true
@@ -362,54 +397,71 @@ app.post('/api/approveUser', (req, res) => {
         .save()
         .then(success => {
           res.status(200)
-          res.json({ success: APPROVE_USER_CONSTANTS.USER_APPROVED })
+          res.json({
+            success: APPROVE_USER_CONSTANTS.USER_APPROVED
+          })
         })
         .catch(err => {
           console.log('Error happened at /api/approveUser: ', err)
           res.status(400)
-          res.json({ error: APPROVE_USER_CONSTANTS.USER_NOT_APPROVED })
+          res.json({
+            error: APPROVE_USER_CONSTANTS.USER_NOT_APPROVED
+          })
         })
     })
     .catch(err => {
       console.log('Error at /api/approveUser', err)
       res.status(400)
-      res.json({ error: APPROVE_USER_CONSTANTS.SERVER_ERROR })
+      res.json({
+        error: APPROVE_USER_CONSTANTS.SERVER_ERROR
+      })
     })
 })
 
 app.post('/api/auth', (req, res, next) => {
   req.body.email = req.body.email.toLowerCase()
   passport.authenticate('local', (err, user) => {
+    console.log('user in /api/auth/', user)
     if (err) {
       console.log('Error at /api/auth', err)
       res.status(400)
-      return res.json({ error: AUTH_CONSTANTS.SERVER_ERROR })
+      return res.json({
+        error: AUTH_CONSTANTS.SERVER_ERROR
+      })
     }
 
     if (!user) {
       res.status(400)
-      return res.json({ error: AUTH_CONSTANTS.USER_IS_NOT_REGISTERED })
+      return res.json({
+        error: AUTH_CONSTANTS.USER_IS_NOT_REGISTERED
+      })
+    }
+
+    if (!user.isApproved) {
+      res.status(500)
+      return res.json({
+        error: AUTH_CONSTANTS.USER_IS_NOT_APPROVED
+      })
     }
 
     req.logIn(user, function (err) {
-      if (err) { return next(err) }
-      console.log('user in /api/auth/: ', user)
+      if (err) {
+        return next(err)
+      }
       res.status(200)
-      return res.json({ success: AUTH_CONSTANTS.CORRECT_PASSWORD })
+      return res.json({
+        success: AUTH_CONSTANTS.CORRECT_PASSWORD
+      })
     })
   })(req, res, next)
 })
 
-/* app.get('/admin', (req, res) => {
-    //TODO check if user is admin
-    //Search in database and check if user is admin. Maybe do it in /api/auth and just check cookie for being admin.
-
-}) */
-
-app.post('/api/getNotApprovedUsers', (req, res) => {
+app.post('/api/getNotApprovedUsers', checkLoginMiddleware({user: 'ADMIN'}), (req, res) => {
   // TODO check for user being admin
   console.log('Got request on api/getNotApprovedUsers')
-  User.find({ isApproved: false })
+  User.find({
+    isApproved: false
+  })
     .exec()
     .then(found => {
       let answer = []
@@ -424,7 +476,9 @@ app.post('/api/getNotApprovedUsers', (req, res) => {
     .catch(err => {
       console.log('Error at /api/getNotApprovedUsers', err)
       res.status(400)
-      res.json({ SERVER_ERROR: 'SERVER_ERROR' })
+      res.json({
+        SERVER_ERROR: 'SERVER_ERROR'
+      })
     })
 })
 
@@ -440,15 +494,17 @@ app.post('/api/add-info', (req, res) => {
     letter
   }
 
-  User.findOneAndUpdate({ email: req.session.passport.user }, { $set: { additional_info: updateObject } }, { new: true }, (err, doc) => {
-    if (err) {
-      console.log('Error at /api/add-info when updating user', err)
-      res.status(400)
-      res.json(INFO_CONSTANTS.INFO_NOT_ADDED)
-    }
-    console.log('Updated user: ', doc)
+  req.user.additional_info = updateObject
+
+  User.findByIdAndUpdate(req.user._id, req.user, {
+    new: true
+  }).exec().then(updatedUser => {
     res.status(200)
     res.json(INFO_CONSTANTS.INFO_ADDED)
+  }).catch(err => {
+    console.log('Error at /api/add-info: ', err)
+    res.status(500)
+    res.json(INFO_CONSTANTS.INFO_NOT_ADDED)
   })
 })
 
@@ -480,7 +536,9 @@ app.post('/api/upload-code', (req, res, next) => {
     }
   })
 
-  AssignmentPacks.findOne({ 'tasks._id': assignmentID }).then(found => {
+  AssignmentPacks.findOne({
+    'tasks._id': assignmentID
+  }).then(found => {
     let task = null
 
     if (found === null) {
@@ -539,46 +597,38 @@ app.post('/api/upload-code', (req, res, next) => {
       }
     })
 
-    User.findOne({ email: req.session.passport.user })
-      .exec()
-      .then(user => {
-        console.log('(first time) user.assignments: ', user.assignments)
-        if (user.assignments.length === 0) {
-          const finishedAssignments = new FinishedAssignmentPack({
-            packName: assignmentPack,
-            finishedAssignments: [assignmentID]
-          })
+    console.log('uploading code, User:', req.user)
+    if (req.user.assignments === undefined || req.user.assignments === null || req.user.assignments.length === 0) {
+      const finishedAssignments = new FinishedAssignmentPack({
+        packName: assignmentPack,
+        finishedAssignments: [assignmentID]
+      })
 
-          user.assignments = finishedAssignments
-        } else {
-          for (let i = 0; i < user.assignments.length; i++) {
-            if (user.assignments[i].packName === assignmentPack) {
-              if (user.assignments.finishedAssignments.includes(assignmentID)) {
-                res.status(400)
-                res.status(CODE_TESTING_CONSTANTS.TESTS_ALREADY_PASSED)
-                next()
-              } else {
-                user.assignments.finishedAssignments.push(assignmentID)
-              }
-            }
-            break
+      req.user.assignments = [finishedAssignments]
+    } else {
+      for (let i = 0; i < req.user.assignments.length; i++) {
+        if (req.user.assignments[i].packName === assignmentPack) {
+          if (req.user.assignments.finishedAssignments.includes(assignmentID)) {
+            res.status(400)
+            res.status(CODE_TESTING_CONSTANTS.TESTS_ALREADY_PASSED)
+            next()
+          } else {
+            req.user.assignments.finishedAssignments.push(assignmentID)
           }
         }
-
-        user
-          .save()
-          .then(success => {
-            res.status(200)
-            res.json(CODE_TESTING_CONSTANTS.TESTS_PASSED)
-            next()
-          })
-          .catch(err => {
-            console.log('Error happened at /api/upload-code', err)
-            res.status(400)
-            res.json(CODE_TESTING_CONSTANTS.SERVER_ERROR)
-            next()
-          })
-      })
+        break
+      }
+    }
+    User.findByIdAndUpdate(req.user._id, req.user, {
+      new: true
+    }).exec().then(updatedUser => {
+      res.status(200)
+      res.json(CODE_TESTING_CONSTANTS.TESTS_PASSED)
+    }).catch(err => {
+      console.log('Error at /api/upload-code:', err)
+      res.status(500)
+      res.json(CODE_TESTING_CONSTANTS.SERVER_ERROR)
+    })
   })
 })
 
@@ -598,18 +648,22 @@ app.post('/api/get-info', (req, res) => {
     res.json(INFO_CONSTANTS.INFO_NOT_ADDED)
   } else {
     res.status(200)
-    res.json({ success: INFO_CONSTANTS.INFO_ADDED, name: req.user.additional_info.name })
+    res.json({
+      success: INFO_CONSTANTS.INFO_ADDED,
+      name: req.user.additional_info.name
+    })
   }
 })
 
 // every get request goes to react
-app.get('*', (request, response) => {
-  if (process.env.LOCAL) {
-    response.sendFile(path.resolve(__dirname, './client/public', 'index.html'))
-  } else {
-    response.sendFile(path.resolve(__dirname, './client/build', 'index.html'))
-  }
-})
+// app.get('*', (request, response) => {
+//   if (process.env.LOCAL) {
+//     console.log('get request here', request.originalUrl)
+//     response.sendFile(path.resolve(__dirname, './client/public', 'index.html'))
+//   } else {
+//     response.sendFile(path.resolve(__dirname, './client/build', 'index.html'))
+//   }
+// })
 
 app.listen(app.get('port'), () => {
   console.log(`Find the server at: http://localhost:${app.get('port')}/`) // eslint-disable-line no-console

@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { Table, Button } from 'reactstrap'
+import Spinner from '../../Reusables/Spinner/Spinner'
 import './Admin.css'
 
 let keyIter = 0
@@ -7,6 +8,13 @@ let keyIter = 0
 class Admin extends Component {
   constructor () {
     super()
+
+    this.state = {
+      table_body: <tr />,
+      users_in_table: 0,
+      is_loading: true
+    }
+
     window.fetch(`api/getNotApprovedUsers`, {
       headers: {
         Accept: 'application/json',
@@ -17,19 +25,16 @@ class Admin extends Component {
     })
       .then(response => response.json())
       .then(resp => {
+        console.log('get not approved users: ', resp)
         let users = []
         resp.forEach(element => {
           users.push(this.renderTableRow(element))
         }, this)
-        this.setState({ table_body: users })
+        this.setState({ table_body: users,
+          is_loading: false })
       })
 
     this.handleChange = this.handleChange.bind(this)
-
-    this.state = {
-      table_body: <tr />,
-      users_in_table: 0
-    }
   }
 
   handleChange = (event) => {
@@ -81,8 +86,9 @@ class Admin extends Component {
   };
 
   render () {
-    return (
-      <Table bordered hover>
+    // this shows table for a split second
+    return this.state.is_loading ? <Spinner />
+      : <Table bordered hover>
         <thead>
           <tr>
             <th>№</th>
@@ -92,7 +98,6 @@ class Admin extends Component {
         </thead>
         <tbody>{this.state.table_body}</tbody>
       </Table>
-    )
   }
 }
 

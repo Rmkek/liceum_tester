@@ -9,10 +9,6 @@
   font-family: "Merriweather", serif;
 }
 
-.footer__name-margin {
-  margin-left: 10px;
-}
-
 .heart {
 	color: #000;
   animation: beat .25s infinite alternate;

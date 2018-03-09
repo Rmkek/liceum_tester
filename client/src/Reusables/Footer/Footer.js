@@ -5,12 +5,11 @@ class Footer extends Component {
   render () {
     return (
       <div className='footer'>
-        <p>
-          Created with <i className='fas fa-heart heart' /> by
-          <a className='footer__name-margin' href='mailto:malyshkov.roman@gmail.com?subject=Liceum Tester'>
-            Malyshkov Roman
-          </a>
-        </p>
+        <div>
+          <p>
+          Created with <i className='fas fa-heart heart' /> by <a className='footer__name-margin' href='mailto:malyshkov.roman@gmail.com?subject=Liceum Tester'> Malyshkov Roman </a>
+          </p>
+        </div>
       </div>
     )
   }

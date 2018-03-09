@@ -31,7 +31,7 @@ class App extends Component {
       modal_shown: false,
       modal_title: '',
       modal_text: '',
-      vk_link: '',
+      contact_link: '',
       redirect: false,
       is_loading: true
     }
@@ -140,7 +140,7 @@ class App extends Component {
                 this.setState({
                   modal_title: 'Error',
                   modal_text: 'Something really, really bad mumbo-jumbo happened. Immediately report it to ',
-                  vk_link: (
+                  contact_link: (
                     <a href='mailto:malyshkov.roman@gmail.com?subject=Liceum Tester'>
                     Roman Malyshkov
                     </a>
@@ -196,7 +196,7 @@ class App extends Component {
                 this.setState({
                   modal_title: 'Error',
                   modal_text: 'Some backend exception happened. Report this incident to your teacher or to ',
-                  vk_link: (
+                  contact_link: (
                     <a href='mailto:malyshkov.roman@gmail.com?subject=Liceum Tester'>
                     Roman Malyshkov
                     </a>
@@ -207,7 +207,7 @@ class App extends Component {
                 this.setState({
                   modal_title: 'Error',
                   modal_text: 'Something really, really bad mumbo-jumbo happened. Immediately report it to ',
-                  vk_link: (
+                  contact_link: (
                     <a href='mailto:malyshkov.roman@gmail.com?subject=Liceum Tester'>
                     Roman Malyshkov
                     </a>
@@ -244,7 +244,7 @@ class App extends Component {
             <ModalHeader toggle={this.closeModal}>{this.state.modal_title}</ModalHeader>
             <ModalBody>
               {this.state.modal_text}
-              {this.state.vk_link}
+              {this.state.contact_link}
             </ModalBody>
             <ModalFooter>
               <Button onClick={this.closeModal}>Close</Button>
