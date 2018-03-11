@@ -16,71 +16,26 @@ import {
   InputGroupText,
   Container
 } from 'reactstrap'
-import './App.css'
+import './register_teacher.css'
 import { Redirect } from 'react-router-dom'
 import * as AUTH_CONSTANTS from '../../Backend_answers/AuthConstants'
-import Spinner from '../../Reusables/Spinner/Spinner'
 
-class App extends Component {
+class RegisterTeacher extends Component {
   constructor () {
     super()
 
     this.state = {
       email_value: '',
       password_value: '',
+      name_value: '',
+      school_value: '',
       modal_shown: false,
       modal_title: '',
       modal_text: '',
       contact_link: '',
       redirect: false,
-      redirect_url: '',
-      is_loading: true,
-      teachers: [],
-      teacher_value: ''
+      redirect_url: ''
     }
-
-    window.fetch(`api/checkForLogin`, {
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-      method: 'POST'
-    })
-      .then(response => {
-        if (response.redirected) {
-          console.log('Successfully logged in.')
-          this.setState({
-            is_loading: false,
-            redirect: true,
-            redirect_url: response.url.substring(response.url.lastIndexOf('/'), response.url.length) })
-        } else {
-          response.json().then(resp => {
-            if (resp === AUTH_CONSTANTS.NOT_LOGGED_IN) {
-              console.log('Not logged in')
-            }
-          })
-        }
-      })
-
-    window.fetch('api/getTeachersList', {
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-      method: 'POST'
-    }).then(res => res.json())
-      .then(json => {
-        let keyIter = 0
-        let teachersArr = this.state.teachers
-        json.forEach(teacher => {
-          teachersArr.push(<option key={keyIter}>{teacher}</option>)
-          keyIter++
-        })
-        this.setState({teachers: teachersArr,
-          is_loading: false})
-      })
 
     document.onkeypress = e => {
       if (e.keyCode === 13 && this.state.modal_shown) {
@@ -91,7 +46,9 @@ class App extends Component {
         this.state.email_value !== '' &&
         this.state.password_value !== '' &&
         this.getEmailValidationState() &&
-        this.getPasswordValidationState()
+        this.getPasswordValidationState() &&
+        this.getSchoolValidationState() &&
+        this.getUserNameValidationState()
       ) {
         e.preventDefault()
         this.authCallback()
@@ -103,12 +60,20 @@ class App extends Component {
     // eslint-disable-next-line
     let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     if (this.state.email_value === '') return null
-    return !!re.test(this.state.email_value)
+    return re.test(this.state.email_value)
   };
 
   getPasswordValidationState = () => {
     return this.state.password_value.length === 0 ? null : this.state.password_value.length >= 6
   };
+
+  getUserNameValidationState = () => {
+    return this.state.name_value.length === 0 ? null : this.state.name_value.length > 0
+  }
+
+  getSchoolValidationState = () => {
+    return this.state.school_value.length === 0 ? null : this.state.school_value > 0
+  }
 
   handleEmailChange = (e) => {
     this.setState({ email_value: e.target.value })
@@ -118,75 +83,20 @@ class App extends Component {
     this.setState({ password_value: e.target.value })
   };
 
-  handleTeacherChange = (e) => {
-    console.log('target: ', e.target.value)
-    this.setState({ teacher_value: e.target.value })
+  handleNameChange = (e) => {
+    this.setState({ name_value: e.target.value })
+  }
+
+  handleSchoolChange = (e) => {
+    this.setState({ school_value: e.target.value })
   }
 
   closeModal = (e) => {
     this.setState({ modal_shown: false })
   };
 
-  authCallback = () => {
-    if (this.state.email_value !== '' && this.state.password_value !== '' && this.validateEmail(this.state.email_value)) {
-      return window.fetch(`api/auth`, {
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        method: 'POST',
-        body: JSON.stringify({
-          email: this.state.email_value,
-          pass: this.state.password_value
-        })
-      }).then(response => {
-        if (response.redirected) {
-          console.log('Successfully logged in.')
-          this.setState({ redirect: true,
-            redirect_url: response.url.substring(response.url.lastIndexOf('/'), response.url.length) })
-        } else {
-          response.json().then(response => {
-            switch (response.error) {
-              case AUTH_CONSTANTS.USER_IS_NOT_APPROVED:
-                this.setState({
-                  modal_title: 'Error',
-                  modal_text: 'Your e-mail is not yet approved. Wait for teacher to approve it.'
-                })
-                break
-              case AUTH_CONSTANTS.WRONG_PASSWORD:
-                this.setState({
-                  modal_title: 'Error',
-                  modal_text: 'Wrong password.'
-                })
-                break
-              case AUTH_CONSTANTS.USER_IS_NOT_REGISTERED:
-                this.setState({
-                  modal_title: 'Error',
-                  modal_text: 'User is not registered. Try pressing register button and waiting for approval.'
-                })
-                break
-              default:
-                this.setState({
-                  modal_title: 'Error',
-                  modal_text: 'Something really, really bad mumbo-jumbo happened. Immediately report it to ',
-                  contact_link: (
-                    <a href='mailto:malyshkov.roman@gmail.com?subject=Liceum Tester'>
-                    Roman Malyshkov
-                    </a>
-                  )
-                })
-                break
-            }
-            this.setState({ modal_shown: true })
-          })
-        }
-      })
-    }
-  };
-
   registerCallback = () => {
-    if (this.state.email_value !== '' && this.state.password_value !== '' && this.validateEmail(this.state.email_value) && this.teacher_value !== '') {
+    if (this.state.email_value !== '' && this.state.password_value !== '' && this.validateEmail(this.state.email_value)) {
       return window.fetch(`api/register`, {
         headers: {
           Accept: 'application/json',
@@ -197,16 +107,19 @@ class App extends Component {
         body: JSON.stringify({
           email: this.state.email_value,
           pass: this.state.password_value,
-          teacher: this.state.teacher_value,
-          type: 'USER'
+          full_name: this.state.name_value,
+          school: this.state.school_value,
+          type: 'TEACHER'
         })
       }).then(response => {
-        if (response.status === 200) {
+        console.log('response: ', response)
+        if (response.status === 200 && response.redirected) {
           this.setState({
             modal_title: 'Registration successful',
-            modal_text: "Wait for teacher to approve your registration, until that you won't be able to log in.",
+            modal_text: "Wait for admin to approve your registration, until that you won't be able to log in.",
             modal_shown: true,
-            contact_link: ''
+            redirect: true,
+            redirect_url: response.url.substring(response.url.lastIndexOf('/'), response.url.length)
           })
           return response
         } else {
@@ -222,7 +135,7 @@ class App extends Component {
                 this.setState({
                   modal_title: 'Error',
                   modal_text:
-                    'Email is already listed in database. Wait for teacher to approve it, or (if you have been approved), try pressing Log in button.'
+                    'Email is already listed in database. Wait for admin to approve it, or (if you have been approved), try logging from root site page.'
                 })
                 break
               case AUTH_CONSTANTS.CANT_INSERT_USER_IN_COLLECTION:
@@ -255,11 +168,7 @@ class App extends Component {
   };
 
   render () {
-    if (this.state.is_loading) {
-      return <Spinner />
-    }
-
-    if (this.state.redirect) {
+    if (this.state.redirect && !this.state.modal_shown) {
       return (
         <Redirect
           to={{
@@ -288,6 +197,7 @@ class App extends Component {
           <Row className='vertical-center'>
             <Col xl={{size: 4, offset: 4}} lg={{ size: 4, offset: 4 }} md={{ size: 5, offset: 4 }} sm={{size: 6, offset: 3}} xs={{size: 8, offset: 2}} className='auth-container'>
               <Form>
+                <h2>Register as a teacher</h2>
                 <FormGroup>
                   <Label for='email_input'> Enter your E-mail address: </Label>
                   <InputGroup>
@@ -316,6 +226,7 @@ class App extends Component {
                       </InputGroupText>
                     </InputGroupAddon>
                     <Input
+                      id='password_input'
                       type='password'
                       name='password'
                       valid={this.getPasswordValidationState()}
@@ -326,25 +237,44 @@ class App extends Component {
                   </InputGroup>
                 </FormGroup>
                 <FormGroup>
-                  <Label for='selectTeacher'>Select your teacher</Label>
+                  <Label for='name'> Enter your full name: </Label>
                   <InputGroup>
                     <InputGroupAddon addonType='prepend'>
                       <InputGroupText>
                         <i className='fas fa-user' aria-hidden='true' />
                       </InputGroupText>
                     </InputGroupAddon>
-                    <Input type='select' name='select' id='selectTeacher' value={this.state.teacher_value}
-                      onChange={this.handleTeacherChange} placeholder='Your teacher'>
-                      {this.state.teachers}
-                    </Input>
+                    <Input
+                      id='name'
+                      name='text'
+                      valid={this.getUserNameValidationState()}
+                      value={this.state.name_value}
+                      onChange={this.handleNameChange}
+                      placeholder='Your full name'
+                    />
+                  </InputGroup>
+                </FormGroup>
+                <FormGroup>
+                  <Label for='name'>Enter your school: </Label>
+                  <InputGroup>
+                    <InputGroupAddon addonType='prepend'>
+                      <InputGroupText>
+                        <i className='fas fa-university' aria-hidden='true' />
+                      </InputGroupText>
+                    </InputGroupAddon>
+                    <Input
+                      id='name'
+                      name='text'
+                      valid={this.getSchoolValidationState()}
+                      value={this.state.school_value}
+                      onChange={this.handleSchoolChange}
+                      placeholder='Example: Лицей №64'
+                    />
                   </InputGroup>
                 </FormGroup>
               </Form>
               <Button color='primary' size='md' block onClick={this.registerCallback}>
                 Register
-              </Button>
-              <Button color='primary' size='md' block onClick={this.authCallback}>
-                Log in
               </Button>
             </Col>
           </Row>
@@ -360,4 +290,4 @@ class App extends Component {
   };
 }
 
-export default App
+export default RegisterTeacher

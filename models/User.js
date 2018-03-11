@@ -20,6 +20,19 @@ const userSchema = Schema({
     type: Boolean,
     default: false
   },
+  isTeacher: {
+    type: Boolean,
+    default: false
+  },
+  full_name: {
+    type: String
+  },
+  school: {
+    type: String
+  },
+  teacher: {
+    type: String
+  },
   additional_info: {
     type: {
       name: String,

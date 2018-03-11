@@ -1,11 +1,11 @@
 import React, { Component } from 'react'
 import { Table, Button } from 'reactstrap'
 import Spinner from '../../Reusables/Spinner/Spinner'
-import './Admin.css'
+import './Teacher.css'
 
 let keyIter = 0
 
-class Admin extends Component {
+class Teacher extends Component {
   constructor () {
     super()
 
@@ -15,7 +15,7 @@ class Admin extends Component {
       is_loading: true
     }
 
-    window.fetch(`api/getNotApprovedTeachers`, {
+    window.fetch(`api/getNotApprovedUsers`, {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json'
@@ -25,7 +25,7 @@ class Admin extends Component {
     })
       .then(response => response.json())
       .then(resp => {
-        console.log('get not approved teachers: ', resp)
+        console.log('get not approved users: ', resp)
         let users = []
         resp.forEach(element => {
           users.push(this.renderTableRow(element))
@@ -77,8 +77,7 @@ class Admin extends Component {
         <td>{email}</td>
         <td>
           <Button onClick={this.handleChange} index={keyIter}>
-            {' '}
-            Approve{' '}
+            Approve
           </Button>
         </td>
       </tr>
@@ -86,7 +85,6 @@ class Admin extends Component {
   };
 
   render () {
-    // this shows table for a split second
     return this.state.is_loading ? <Spinner />
       : <Table bordered hover>
         <thead>
@@ -94,6 +92,7 @@ class Admin extends Component {
             <th>№</th>
             <th>E-mail</th>
             <th>Approve</th>
+            {/* add categories */}
           </tr>
         </thead>
         <tbody>{this.state.table_body}</tbody>
@@ -101,4 +100,4 @@ class Admin extends Component {
   }
 }
 
-export default Admin
+export default Teacher

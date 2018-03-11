@@ -8,6 +8,13 @@ module.exports = (options) => {
           res.redirect('/')
         }
         break
+      case 'TEACHER':
+        if (req.user !== undefined && req.user.isTeacher !== undefined && req.user.isTeacher) {
+          next()
+        } else {
+          res.redirect('/')
+        }
+        break
       default:
         if (req.user) {
           next()

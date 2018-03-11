@@ -76,6 +76,7 @@ app.use(
 )
 app.use(passport.initialize())
 app.use(passport.session())
+
 passport.use(new LocalStrategy({
   usernameField: 'email',
   passwordField: 'pass'
@@ -141,9 +142,10 @@ console.log('resolved static path: ', path.resolve(__dirname, './client/build'))
 app.use(express.static(path.resolve(__dirname, './client/build')))
 
 app.get('/admin*', checkLoginMiddleware({user: 'ADMIN'}))
+app.get('/teacher*', checkLoginMiddleware({user: 'TEACHER'}))
 
 // refactor?
-app.post('/api/add-assignment', checkLoginMiddleware({user: 'ADMIN'}), (req, res) => {
+app.post('/api/add-assignment', checkLoginMiddleware({user: 'TEACHER'}), (req, res) => {
   console.log('Got request on /api/add-assignment, body: ', req.body)
 
   let name = req.body.assignmentPackName
@@ -193,6 +195,7 @@ app.post('/api/add-assignment', checkLoginMiddleware({user: 'ADMIN'}), (req, res
 
             tasksArray.push(testsOutput)
           }
+
           console.log('Ready to save in database!')
           console.log('pdf: ', pdfFileURL)
           console.log('name: ', name)
@@ -202,7 +205,8 @@ app.post('/api/add-assignment', checkLoginMiddleware({user: 'ADMIN'}), (req, res
             pdfPath: pdfFileURL,
             name,
             categories,
-            tasks: tasksArray
+            tasks: tasksArray,
+            teacher: req.user.full_name
           })
             .save()
             .then(success => {
@@ -228,8 +232,8 @@ app.post('/api/add-assignment', checkLoginMiddleware({user: 'ADMIN'}), (req, res
     })
 })
 
-app.post('/api/assignments', (req, res) => {
-  AssignmentPacks.find({})
+app.post('/api/assignments', checkLoginMiddleware({}), (req, res) => {
+  AssignmentPacks.find({teacher: req.user.teacher})
     .exec()
     .then(found => {
       const output = []
@@ -248,9 +252,7 @@ app.post('/api/assignments', (req, res) => {
     })
 })
 
-app.post('/api/getAssignmentPack', (req, res, next) => {
-  // redirecting when no session present
-
+app.post('/api/getAssignmentPack', checkLoginMiddleware({}), (req, res, next) => {
   if (req.body.assignmentPack === undefined) {
     res.status(400)
     res.json(ASSIGNMENT_CONSTANTS.NO_SUCH_ASSIGNMENT)
@@ -260,7 +262,8 @@ app.post('/api/getAssignmentPack', (req, res, next) => {
   const assignmentPack = req.body.assignmentPack
 
   AssignmentPacks.findOne({
-    name: assignmentPack
+    name: assignmentPack,
+    teacher: req.user.teacher
   })
     .exec()
     .then(found => {
@@ -334,7 +337,7 @@ app.post('/api/getAssignmentPack', (req, res, next) => {
 
 app.post('/api/register', (req, res) => {
   req.body.email = req.body.email.toLowerCase()
-
+  console.log('request on registration, req.body: ', req.body)
   // if email is not valid throw error
   if (!validateEmail(req.body.email)) {
     res.status(400)
@@ -358,23 +361,50 @@ app.post('/api/register', (req, res) => {
             res.status(400)
             res.json(AUTH_CONSTANTS.CANT_INSERT_USER_IN_COLLECTION)
           } else {
-            new User({
-              email: req.body.email,
-              password_hash: hash,
-              isApproved: false,
-              isAdmin: false,
-              created_at: Date.now()
-            })
-              .save()
-              .then(success => {
-                res.status(200)
-                res.json(AUTH_CONSTANTS.USER_ADDED_IN_DB)
-              })
-              .catch(err => {
-                console.log('Error happened at /api/register: ', err)
-                res.status(400)
-                res.json(AUTH_CONSTANTS.CANT_INSERT_USER_IN_COLLECTION)
-              })
+            switch (req.body.type) {
+              case 'TEACHER':
+                console.log('request for teacher registration, req.body: ', req.body)
+                new User({
+                  email: req.body.email,
+                  password_hash: hash,
+                  isApproved: false,
+                  isTeacher: true,
+                  full_name: req.body.full_name,
+                  school: req.body.school,
+                  created_at: Date.now()
+                })
+                  .save()
+                  .then(success => {
+                    console.log('teacher successfully saved in db ', success)
+                    res.redirect('/')
+                  })
+                  .catch(err => {
+                    console.log('Error happened at /api/register as Teacher: ', err)
+                    res.status(400)
+                    res.json(AUTH_CONSTANTS.CANT_INSERT_USER_IN_COLLECTION)
+                  })
+                break
+              default:
+                console.log('request for default user registration, req.body: ', req.body)
+                new User({
+                  email: req.body.email,
+                  password_hash: hash,
+                  isApproved: false,
+                  isAdmin: false,
+                  teacher: req.body.teacher,
+                  created_at: Date.now()
+                })
+                  .save()
+                  .then(success => {
+                    res.status(200)
+                    res.json(AUTH_CONSTANTS.USER_ADDED_IN_DB)
+                  })
+                  .catch(err => {
+                    console.log('Error happened at /api/register: ', err)
+                    res.status(400)
+                    res.json(AUTH_CONSTANTS.CANT_INSERT_USER_IN_COLLECTION)
+                  })
+            }
           }
         })
       }
@@ -385,37 +415,77 @@ app.post('/api/register', (req, res) => {
     })
 })
 
-app.post('/api/approveUser', checkLoginMiddleware({user: 'ADMIN'}), (req, res) => {
+app.post('/api/approveUser', (req, res) => {
   // TODO: check for user being admin
-  User.findOne({
-    email: req.body.email
-  })
-    .exec()
-    .then(user => {
-      user.isApproved = true
-      user
-        .save()
-        .then(success => {
-          res.status(200)
-          res.json({
-            success: APPROVE_USER_CONSTANTS.USER_APPROVED
-          })
+  if (req.user !== undefined && req.user.isTeacher !== undefined && req.user.isAdmin !== undefined && (req.user.isAdmin || req.user.isTeacher)) {
+    if (req.user.isTeacher) {
+      console.log('approving users for teacher')
+      console.log('teacher: ', req.user)
+      User.findOne({
+        email: req.body.email,
+        teacher: req.user.full_name
+      })
+        .exec()
+        .then(user => {
+          console.log('found user: ', user)
+          user.isApproved = true
+          user
+            .save()
+            .then(success => {
+              res.status(200)
+              res.json({
+                success: APPROVE_USER_CONSTANTS.USER_APPROVED
+              })
+            })
+            .catch(err => {
+              console.log('Error happened at /api/approveUser: ', err)
+              res.status(400)
+              res.json({
+                error: APPROVE_USER_CONSTANTS.USER_NOT_APPROVED
+              })
+            })
         })
         .catch(err => {
-          console.log('Error happened at /api/approveUser: ', err)
+          console.log('Error at /api/approveUser', err)
           res.status(400)
           res.json({
-            error: APPROVE_USER_CONSTANTS.USER_NOT_APPROVED
+            error: APPROVE_USER_CONSTANTS.SERVER_ERROR
           })
         })
-    })
-    .catch(err => {
-      console.log('Error at /api/approveUser', err)
-      res.status(400)
-      res.json({
-        error: APPROVE_USER_CONSTANTS.SERVER_ERROR
+    } else {
+      User.findOne({
+        email: req.body.email
       })
-    })
+        .exec()
+        .then(user => {
+          user.isApproved = true
+          user
+            .save()
+            .then(success => {
+              res.status(200)
+              res.json({
+                success: APPROVE_USER_CONSTANTS.USER_APPROVED
+              })
+            })
+            .catch(err => {
+              console.log('Error happened at /api/approveUser: ', err)
+              res.status(400)
+              res.json({
+                error: APPROVE_USER_CONSTANTS.USER_NOT_APPROVED
+              })
+            })
+        })
+        .catch(err => {
+          console.log('Error at /api/approveUser', err)
+          res.status(400)
+          res.json({
+            error: APPROVE_USER_CONSTANTS.SERVER_ERROR
+          })
+        })
+    }
+  } else {
+    res.redirect('/')
+  }
 })
 
 app.post('/api/auth', (req, res, next) => {
@@ -428,39 +498,37 @@ app.post('/api/auth', (req, res, next) => {
       return res.json({
         error: AUTH_CONSTANTS.SERVER_ERROR
       })
-    }
-
-    if (!user) {
+    } else if (!user) {
       res.status(400)
       return res.json({
         error: AUTH_CONSTANTS.USER_IS_NOT_REGISTERED
       })
-    }
-
-    if (!user.isApproved) {
+    } else if (!user.isApproved) {
       res.status(500)
       return res.json({
         error: AUTH_CONSTANTS.USER_IS_NOT_APPROVED
       })
     }
-
     req.logIn(user, function (err) {
-      if (err) {
-        return next(err)
+      if (err) return next(err)
+      console.log('Authenticated user isAdmin: ', user.isAdmin)
+      if (user.isAdmin) {
+        res.redirect('/admin')
+      } else if (user.isTeacher) {
+        res.redirect('/teacher')
+      } else {
+        res.redirect('/add-info')
       }
-      res.status(200)
-      return res.json({
-        success: AUTH_CONSTANTS.CORRECT_PASSWORD
-      })
     })
   })(req, res, next)
 })
 
-app.post('/api/getNotApprovedUsers', checkLoginMiddleware({user: 'ADMIN'}), (req, res) => {
+app.post('/api/getNotApprovedUsers', checkLoginMiddleware({user: 'TEACHER'}), (req, res) => {
   // TODO check for user being admin
   console.log('Got request on api/getNotApprovedUsers')
   User.find({
-    isApproved: false
+    isApproved: false,
+    teacher: req.user.full_name
   })
     .exec()
     .then(found => {
@@ -480,9 +548,10 @@ app.post('/api/getNotApprovedUsers', checkLoginMiddleware({user: 'ADMIN'}), (req
         SERVER_ERROR: 'SERVER_ERROR'
       })
     })
-})
+}
+)
 
-app.post('/api/add-info', (req, res) => {
+app.post('/api/add-info', checkLoginMiddleware({}), (req, res) => {
   // TODO check add-info for user having session. If there is no session, redirect to login page.
   let name = req.body.name
   let grade = req.body.grade
@@ -508,7 +577,7 @@ app.post('/api/add-info', (req, res) => {
   })
 })
 
-app.post('/api/upload-code', (req, res, next) => {
+app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
   const assignmentPack = req.body.assignmentPackName
   const assignmentID = req.body.assignmentID
 
@@ -632,17 +701,72 @@ app.post('/api/upload-code', (req, res, next) => {
   })
 })
 
+app.post('/api/getTeachersList', (req, res) => {
+  User.find({
+    isTeacher: true,
+    isApproved: true
+  })
+    .exec()
+    .then(found => {
+      console.log('found teachers in list: ', found)
+      let answer = []
+
+      found.forEach(el => {
+        answer.push(el.full_name)
+      })
+
+      res.status(200)
+      res.json(answer)
+    })
+    .catch(err => {
+      console.log('Error at /api/getNotApprovedUsers', err)
+      res.status(400)
+      res.json({
+        SERVER_ERROR: 'SERVER_ERROR'
+      })
+    })
+})
+
 app.post('/api/checkForLogin', (req, res) => {
-  if (req.user) {
-    res.status(200)
-    res.json(AUTH_CONSTANTS.CORRECT_PASSWORD)
-  } else {
+  if (req.user === undefined) {
     res.status(200)
     res.json(AUTH_CONSTANTS.NOT_LOGGED_IN)
+  } else if (req.user.isAdmin) {
+    res.redirect('/admin')
+  } else if (req.user.isTeacher) {
+    console.log('redirecting to teacher')
+    res.redirect('/teacher')
+  } else if (req.user) {
+    res.redirect('/add-info')
   }
 })
 
-app.post('/api/get-info', (req, res) => {
+app.post('/api/getNotApprovedTeachers', checkLoginMiddleware({user: 'ADMIN'}), (req, res) => {
+  User.find({
+    isApproved: false,
+    isTeacher: true
+  })
+    .exec()
+    .then(found => {
+      let answer = []
+
+      found.forEach(el => {
+        answer.push(el.email)
+      })
+
+      res.status(200)
+      res.json(answer)
+    })
+    .catch(err => {
+      console.log('Error at /api/getNotApprovedUsers', err)
+      res.status(400)
+      res.json({
+        SERVER_ERROR: 'SERVER_ERROR'
+      })
+    })
+})
+
+app.post('/api/get-info', checkLoginMiddleware({}), (req, res) => {
   if (req.user === null || req.user.additional_info === undefined || req.user.additional_info === undefined) {
     res.status(200)
     res.json(INFO_CONSTANTS.INFO_NOT_ADDED)
@@ -655,22 +779,12 @@ app.post('/api/get-info', (req, res) => {
   }
 })
 
-// every get request goes to react
-// app.get('*', (request, response) => {
-//   if (process.env.LOCAL) {
-//     console.log('get request here', request.originalUrl)
-//     response.sendFile(path.resolve(__dirname, './client/public', 'index.html'))
-//   } else {
-//     response.sendFile(path.resolve(__dirname, './client/build', 'index.html'))
-//   }
-// })
-
 app.listen(app.get('port'), () => {
   console.log(`Find the server at: http://localhost:${app.get('port')}/`) // eslint-disable-line no-console
 })
 app.disable('etag')
 
 const validateEmail = email => {
-  var re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+  const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
   return re.test(email)
 }
