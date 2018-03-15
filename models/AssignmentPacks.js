@@ -7,7 +7,7 @@ const assignmentPacksSchema = Schema({
   categories: { type: [String], required: true },
   pdfPath: { type: String, required: true },
   tasks: { type: [AssignmentTask], required: true },
-  teacher: {type: String, required: true}
+  teacher: { type: String, required: true }
 })
 
 const AssignmentPacks = mongoose.model('AssignmentPacks', assignmentPacksSchema, 'assignments')

@@ -25,9 +25,7 @@ const dbx = new Dropbox({
 })
 
 // executing user code
-const {
-  execSync
-} = require('child_process')
+const { execSync } = require('child_process')
 
 // app managemenent
 const opbeat = require('opbeat').start()
@@ -77,38 +75,41 @@ app.use(
 app.use(passport.initialize())
 app.use(passport.session())
 
-passport.use(new LocalStrategy({
-  usernameField: 'email',
-  passwordField: 'pass'
-},
-(email, password, done) => {
-  User.findOne({
-    email: email
-  })
-    .exec()
-    .then(user => {
-      if (!user) {
-        return done(null, false)
-      }
-
-      if (!user.isApproved) {
-        return done(null, {
-          isApproved: false
-        })
-      }
-
-      bcrypt.compare(password, user.password_hash, (err, isValid) => {
-        if (err) return done(err)
-        if (!isValid) return done(null, false)
-        return done(null, user)
+passport.use(
+  new LocalStrategy(
+    {
+      usernameField: 'email',
+      passwordField: 'pass'
+    },
+    (email, password, done) => {
+      User.findOne({
+        email: email
       })
-    })
-    .catch(err => {
-      console.log('Error in pasport strategy', err)
-      return done(err)
-    })
-}
-))
+        .exec()
+        .then(user => {
+          if (!user) {
+            return done(null, false)
+          }
+
+          if (!user.isApproved) {
+            return done(null, {
+              isApproved: false
+            })
+          }
+
+          bcrypt.compare(password, user.password_hash, (err, isValid) => {
+            if (err) return done(err)
+            if (!isValid) return done(null, false)
+            return done(null, user)
+          })
+        })
+        .catch(err => {
+          console.log('Error in pasport strategy', err)
+          return done(err)
+        })
+    }
+  )
+)
 
 passport.serializeUser((user, cb) => {
   console.log('serializing user: ', user)
@@ -118,9 +119,11 @@ passport.serializeUser((user, cb) => {
 passport.deserializeUser((user, done) => {
   User.findById({
     _id: user._id
-  }).exec().then(user => {
-    done(false, user)
   })
+    .exec()
+    .then(user => {
+      done(false, user)
+    })
     .catch(err => {
       console.log('Error while deserializing: ', err)
       done(err)
@@ -141,11 +144,11 @@ console.log('resolved static path: ', path.resolve(__dirname, './client/build'))
 
 app.use(express.static(path.resolve(__dirname, './client/build')))
 
-app.get('/admin*', checkLoginMiddleware({user: 'ADMIN'}))
-app.get('/teacher*', checkLoginMiddleware({user: 'TEACHER'}))
+app.get('/admin*', checkLoginMiddleware({ user: 'ADMIN' }))
+app.get('/teacher*', checkLoginMiddleware({ user: 'TEACHER' }))
 
 // refactor?
-app.post('/api/add-assignment', checkLoginMiddleware({user: 'TEACHER'}), (req, res) => {
+app.post('/api/add-assignment', checkLoginMiddleware({ user: 'TEACHER' }), (req, res) => {
   console.log('Got request on /api/add-assignment, body: ', req.body)
 
   let name = req.body.assignmentPackName
@@ -233,7 +236,7 @@ app.post('/api/add-assignment', checkLoginMiddleware({user: 'TEACHER'}), (req, r
 })
 
 app.post('/api/assignments', checkLoginMiddleware({}), (req, res) => {
-  AssignmentPacks.find({teacher: req.user.teacher})
+  AssignmentPacks.find({ teacher: req.user.teacher })
     .exec()
     .then(found => {
       const output = []
@@ -408,7 +411,8 @@ app.post('/api/register', (req, res) => {
           }
         })
       }
-    }).catch(err => {
+    })
+    .catch(err => {
       console.log('Error at /api/register. ', err)
       res.status(400)
       res.json(AUTH_CONSTANTS.SERVER_ERROR)
@@ -417,7 +421,12 @@ app.post('/api/register', (req, res) => {
 
 app.post('/api/approveUser', (req, res) => {
   // TODO: check for user being admin
-  if (req.user !== undefined && req.user.isTeacher !== undefined && req.user.isAdmin !== undefined && (req.user.isAdmin || req.user.isTeacher)) {
+  if (
+    req.user !== undefined &&
+    req.user.isTeacher !== undefined &&
+    req.user.isAdmin !== undefined &&
+    (req.user.isAdmin || req.user.isTeacher)
+  ) {
     if (req.user.isTeacher) {
       console.log('approving users for teacher')
       console.log('teacher: ', req.user)
@@ -509,7 +518,7 @@ app.post('/api/auth', (req, res, next) => {
         error: AUTH_CONSTANTS.USER_IS_NOT_APPROVED
       })
     }
-    req.logIn(user, function (err) {
+    req.logIn(user, err => {
       if (err) return next(err)
       console.log('Authenticated user isAdmin: ', user.isAdmin)
       if (user.isAdmin) {
@@ -523,7 +532,7 @@ app.post('/api/auth', (req, res, next) => {
   })(req, res, next)
 })
 
-app.post('/api/getNotApprovedUsers', checkLoginMiddleware({user: 'TEACHER'}), (req, res) => {
+app.post('/api/getNotApprovedUsers', checkLoginMiddleware({ user: 'TEACHER' }), (req, res) => {
   // TODO check for user being admin
   console.log('Got request on api/getNotApprovedUsers')
   User.find({
@@ -548,8 +557,7 @@ app.post('/api/getNotApprovedUsers', checkLoginMiddleware({user: 'TEACHER'}), (r
         SERVER_ERROR: 'SERVER_ERROR'
       })
     })
-}
-)
+})
 
 app.post('/api/add-info', checkLoginMiddleware({}), (req, res) => {
   // TODO check add-info for user having session. If there is no session, redirect to login page.
@@ -567,14 +575,17 @@ app.post('/api/add-info', checkLoginMiddleware({}), (req, res) => {
 
   User.findByIdAndUpdate(req.user._id, req.user, {
     new: true
-  }).exec().then(updatedUser => {
-    res.status(200)
-    res.json(INFO_CONSTANTS.INFO_ADDED)
-  }).catch(err => {
-    console.log('Error at /api/add-info: ', err)
-    res.status(500)
-    res.json(INFO_CONSTANTS.INFO_NOT_ADDED)
   })
+    .exec()
+    .then(updatedUser => {
+      res.status(200)
+      res.json(INFO_CONSTANTS.INFO_ADDED)
+    })
+    .catch(err => {
+      console.log('Error at /api/add-info: ', err)
+      res.status(500)
+      res.json(INFO_CONSTANTS.INFO_NOT_ADDED)
+    })
 })
 
 app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
@@ -690,14 +701,17 @@ app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
     }
     User.findByIdAndUpdate(req.user._id, req.user, {
       new: true
-    }).exec().then(updatedUser => {
-      res.status(200)
-      res.json(CODE_TESTING_CONSTANTS.TESTS_PASSED)
-    }).catch(err => {
-      console.log('Error at /api/upload-code:', err)
-      res.status(500)
-      res.json(CODE_TESTING_CONSTANTS.SERVER_ERROR)
     })
+      .exec()
+      .then(updatedUser => {
+        res.status(200)
+        res.json(CODE_TESTING_CONSTANTS.TESTS_PASSED)
+      })
+      .catch(err => {
+        console.log('Error at /api/upload-code:', err)
+        res.status(500)
+        res.json(CODE_TESTING_CONSTANTS.SERVER_ERROR)
+      })
   })
 })
 
@@ -741,7 +755,7 @@ app.post('/api/checkForLogin', (req, res) => {
   }
 })
 
-app.post('/api/getNotApprovedTeachers', checkLoginMiddleware({user: 'ADMIN'}), (req, res) => {
+app.post('/api/getNotApprovedTeachers', checkLoginMiddleware({ user: 'ADMIN' }), (req, res) => {
   User.find({
     isApproved: false,
     isTeacher: true
