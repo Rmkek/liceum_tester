@@ -144,6 +144,9 @@ console.log('resolved static path: ', path.resolve(__dirname, './client/build'))
 
 app.use(express.static(path.resolve(__dirname, './client/build')))
 
+app.get('/keybase.txt', (req, res) => {
+  res.sendFile('./keybase.txt')
+})
 app.get('/admin*', checkLoginMiddleware({ user: 'ADMIN' }))
 app.get('/teacher*', checkLoginMiddleware({ user: 'TEACHER' }))
 
