@@ -12,6 +12,18 @@ const userSchema = Schema({
     type: String,
     required: true
   },
+  first_name: {
+    type: String,
+    required: true
+  },
+  last_name: {
+    type: String,
+    required: true
+  },
+  patronymic: {
+    type: String,
+    required: true
+  },
   isApproved: {
     type: Boolean,
     required: true
@@ -32,13 +44,6 @@ const userSchema = Schema({
   },
   teacher: {
     type: String
-  },
-  additional_info: {
-    type: {
-      name: String,
-      grade: Number,
-      grade_letter: String
-    }
   },
   assignments: {
     type: [finishedAssignmentPacks]

@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
 import { Col, Row, Table, Button, FormGroup, Badge, Input, Label, Alert } from 'reactstrap'
-import * as ASSIGNMENT_CONSTANTS from '../../../Backend_answers/AssignmentConstants'
-import * as CODE_TESTING_CONSTANTS from '../../../Backend_answers/CodeTestingConstants'
+import * as ASSIGNMENT_CONSTANTS from '../../../../Backend_answers/AssignmentConstants'
+import * as CODE_TESTING_CONSTANTS from '../../../../Backend_answers/CodeTestingConstants'
 import './Assignment.css'
 
 class Assignment extends Component {

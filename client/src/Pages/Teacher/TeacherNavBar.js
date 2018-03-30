@@ -10,6 +10,9 @@ class TeacherNavBar extends Component {
           <NavItem>
             <NavLink href='/teacher/add-assignments/'>Add assignments</NavLink>
           </NavItem>
+          <NavItem>
+            <NavLink href='/teacher/approve-students/'>Approve students</NavLink>
+          </NavItem>
         </Nav>
       </Navbar>
     )

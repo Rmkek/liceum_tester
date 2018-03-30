@@ -16,28 +16,52 @@ import {
   InputGroupText,
   Container
 } from 'reactstrap'
-import './register_teacher.css'
+import './RegisterUser.css'
 import { Redirect } from 'react-router-dom'
 import * as AUTH_CONSTANTS from '../../Backend_answers/AuthConstants'
+import Spinner from '../../Reusables/Spinner/Spinner'
 
-class RegisterTeacher extends Component {
+class RegisterUser extends Component {
   constructor () {
     super()
 
     this.state = {
       email_value: '',
       password_value: '',
-      first_name_value: '',
-      last_name_value: '',
-      patronymic: '',
-      school_value: '',
       modal_shown: false,
       modal_title: '',
       modal_text: '',
       contact_link: '',
       redirect: false,
-      redirect_url: ''
+      redirect_url: '',
+      is_loading: true,
+      teachers: [],
+      teacher_value: '',
+      first_name_value: '',
+      last_name_value: '',
+      patronymic: ''
     }
+
+    window.fetch('api/getTeachersList', {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      method: 'POST'
+    }).then(res => res.json())
+      .then(json => {
+        let keyIter = 0
+        let teachersArr = this.state.teachers
+        json.forEach(teacher => {
+          teachersArr.push(<option key={keyIter}>{teacher}</option>)
+          keyIter++
+        })
+        console.log('jsonteachers: ', json)
+        this.setState({teacher_value: json[0],
+          teachers: teachersArr,
+          is_loading: false})
+      })
 
     document.onkeypress = e => {
       if (e.keyCode === 13 && this.state.modal_shown) {
@@ -48,9 +72,7 @@ class RegisterTeacher extends Component {
         this.state.email_value !== '' &&
         this.state.password_value !== '' &&
         this.getEmailValidationState() &&
-        this.getPasswordValidationState() &&
-        this.getSchoolValidationState() &&
-        this.getUserNameValidationState()
+        this.getPasswordValidationState()
       ) {
         e.preventDefault()
         this.authCallback()
@@ -62,7 +84,7 @@ class RegisterTeacher extends Component {
     // eslint-disable-next-line
     let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     if (this.state.email_value === '') return null
-    return re.test(this.state.email_value)
+    return !!re.test(this.state.email_value)
   };
 
   getPasswordValidationState = () => {
@@ -70,11 +92,15 @@ class RegisterTeacher extends Component {
   };
 
   getUserNameValidationState = () => {
-    return this.state.name_value.length === 0 ? null : this.state.name_value.length > 0
+    return this.state.first_name_value.length === 0 ? null : this.state.first_name_value.length > 0
   }
 
-  getSchoolValidationState = () => {
-    return this.state.school_value.length === 0 ? null : this.state.school_value > 0
+  getLastNameValidationState = () => {
+    return this.state.last_name_value.length === 0 ? null : this.state.last_name_value.length > 0
+  }
+
+  getPatronymicValidationState = () => {
+    return this.state.patronymic.length === 0 ? null : this.state.patronymic.length > 0
   }
 
   handleEmailChange = (e) => {
@@ -89,18 +115,6 @@ class RegisterTeacher extends Component {
     this.setState({ first_name_value: e.target.value })
   }
 
-  getUserNameValidationState = () => {
-    return this.state.first_name_value.length === 0 ? null : this.state.first_name_value.length > 0
-  }
-
-  getLastNameValidationState = () => {
-    return this.state.last_name_value.length === 0 ? null : this.state.last_name_value.length > 0
-  }
-
-  getPatronymicValidationState = () => {
-    return this.state.patronymic.length === 0 ? null : this.state.patronymic.length > 0
-  }
-
   handleLastNameChange = (e) => {
     this.setState({ last_name_value: e.target.value })
   }
@@ -109,8 +123,8 @@ class RegisterTeacher extends Component {
     this.setState({ patronymic: e.target.value })
   }
 
-  handleSchoolChange = (e) => {
-    this.setState({ school_value: e.target.value })
+  handleTeacherChange = (e) => {
+    this.setState({ teacher_value: e.target.value })
   }
 
   closeModal = (e) => {
@@ -118,7 +132,9 @@ class RegisterTeacher extends Component {
   };
 
   registerCallback = () => {
-    if (this.state.email_value !== '' && this.state.password_value !== '' && this.validateEmail(this.state.email_value)) {
+    if (this.state.email_value !== '' && this.state.password_value !== '' &&
+     this.validateEmail(this.state.email_value) && this.teacher_value !== '' &&
+     this.state.first_name_value !== '' && this.state.last_name_value !== '' && this.state.patronymic !== '') {
       return window.fetch(`api/register`, {
         headers: {
           Accept: 'application/json',
@@ -128,38 +144,40 @@ class RegisterTeacher extends Component {
         method: 'POST',
         body: JSON.stringify({
           email: this.state.email_value,
-          pass: this.state.password_value,
           first_name: this.state.first_name_value,
           last_name: this.state.last_name_value,
           patronymic: this.state.patronymic,
-          school: this.state.school_value,
-          type: 'TEACHER'
+          pass: this.state.password_value,
+          teacher: this.state.teacher_value,
+          type: 'USER'
         })
       }).then(response => {
-        console.log('response: ', response)
-        if (response.status === 200 && response.redirected) {
+        if (response.status === 200) {
           this.setState({
             modal_title: 'Registration successful',
-            modal_text: "Wait for admin to approve your registration, until that you won't be able to log in.",
+            modal_text: "Wait for teacher to approve your registration, until that you won't be able to log in.",
             modal_shown: true,
-            redirect: true,
             contact_link: '',
-            redirect_url: response.url.substring(response.url.lastIndexOf('/'), response.url.length)
+            redirect: true,
+            redirect_url: '/'
           })
+          return response
         } else {
           response.json().then(response => {
             switch (response) {
               case AUTH_CONSTANTS.WRONG_EMAIL:
                 this.setState({
                   modal_title: 'Error',
-                  modal_text: 'Wrong email content. Use correct email address.'
+                  modal_text: 'Wrong email content. Use correct email address.',
+                  modal_shown: true
                 })
                 break
               case AUTH_CONSTANTS.EMAIL_ALREADY_IN_DB:
                 this.setState({
                   modal_title: 'Error',
                   modal_text:
-                    'Email is already listed in database. Wait for admin to approve it, or (if you have been approved), try logging from root site page.'
+                    'Email is already listed in database. Wait for teacher to approve it, or (if you have been approved), try pressing Log in button.',
+                  modal_shown: true
                 })
                 break
               case AUTH_CONSTANTS.CANT_INSERT_USER_IN_COLLECTION:
@@ -170,29 +188,34 @@ class RegisterTeacher extends Component {
                     <a href='mailto:malyshkov.roman@gmail.com?subject=Liceum Tester'>
                     Roman Malyshkov
                     </a>
-                  )
+                  ),
+                  modal_shown: true
                 })
                 break
               default:
                 this.setState({
                   modal_title: 'Error',
-                  modal_text: 'Something really, really bad mumbo-jumbo happened. Immediately report it to ',
+                  modal_text: 'OOPSIE WOOPSIE!! Uwu We made a fucky wucky!! A wittle fucko boingo! The code monkeys at our headquarters are working VEWY HAWD to fix this!',
                   contact_link: (
                     <a href='mailto:malyshkov.roman@gmail.com?subject=Liceum Tester'>
                     Roman Malyshkov
                     </a>
-                  )
+                  ),
+                  modal_shown: true
                 })
             }
-            this.setState({ modal_shown: true })
           })
         }
       })
     }
-  };
+  }
 
   render () {
-    if (this.state.redirect && !this.state.modal_shown) {
+    if (this.state.is_loading) {
+      return <Spinner />
+    }
+
+    if (!this.state.modal_shown && this.state.redirect) {
       return (
         <Redirect
           to={{
@@ -206,7 +229,7 @@ class RegisterTeacher extends Component {
     return (
       <div>
         <div className='modal-container'>
-          <Modal isOpen={this.state.modal_shown} onClick={this.closeModal}>
+          <Modal isOpen={this.state.modal_shown} onClick={this.closeModal} backdrop='static'>
             <ModalHeader toggle={this.closeModal}>{this.state.modal_title}</ModalHeader>
             <ModalBody>
               {this.state.modal_text}
@@ -221,45 +244,6 @@ class RegisterTeacher extends Component {
           <Row className='vertical-center'>
             <Col xl={{size: 4, offset: 4}} lg={{ size: 4, offset: 4 }} md={{ size: 5, offset: 4 }} sm={{size: 6, offset: 3}} xs={{size: 8, offset: 2}} className='auth-container'>
               <Form>
-                <h2>Register as a teacher</h2>
-                <FormGroup>
-                  <Label for='email_input'> Enter your E-mail address: </Label>
-                  <InputGroup>
-                    <InputGroupAddon addonType='prepend'>
-                      <InputGroupText>
-                        <i className='fa fa-envelope fa' aria-hidden='true' />
-                      </InputGroupText>
-                    </InputGroupAddon>
-                    <Input
-                      id='email_input'
-                      type='email'
-                      name='email'
-                      valid={this.getEmailValidationState()}
-                      value={this.state.email_value}
-                      onChange={this.handleEmailChange}
-                      placeholder='Your e-mail'
-                    />
-                  </InputGroup>
-                </FormGroup>
-                <FormGroup>
-                  <Label for='password_input'> Enter your password: </Label>
-                  <InputGroup>
-                    <InputGroupAddon addonType='prepend'>
-                      <InputGroupText>
-                        <i className='fa fa-lock fa-lg' aria-hidden='true' />
-                      </InputGroupText>
-                    </InputGroupAddon>
-                    <Input
-                      id='password_input'
-                      type='password'
-                      name='password'
-                      valid={this.getPasswordValidationState()}
-                      value={this.state.password_value}
-                      onChange={this.handlePasswordChange}
-                      placeholder='Your password'
-                    />
-                  </InputGroup>
-                </FormGroup>
                 <FormGroup>
                   <Label for='name'> Enter your first name: </Label>
                   <InputGroup>
@@ -315,21 +299,54 @@ class RegisterTeacher extends Component {
                   </InputGroup>
                 </FormGroup>
                 <FormGroup>
-                  <Label for='name'>Enter your school: </Label>
+                  <Label for='email_input'> Enter your E-mail address: </Label>
                   <InputGroup>
                     <InputGroupAddon addonType='prepend'>
                       <InputGroupText>
-                        <i className='fas fa-university' aria-hidden='true' />
+                        <i className='fa fa-envelope fa' aria-hidden='true' />
                       </InputGroupText>
                     </InputGroupAddon>
                     <Input
-                      id='school'
-                      name='text'
-                      valid={this.getSchoolValidationState()}
-                      value={this.state.school_value}
-                      onChange={this.handleSchoolChange}
-                      placeholder='Example: Лицей №64'
+                      id='email_input'
+                      type='email'
+                      name='email'
+                      valid={this.getEmailValidationState()}
+                      value={this.state.email_value}
+                      onChange={this.handleEmailChange}
+                      placeholder='Your e-mail'
                     />
+                  </InputGroup>
+                </FormGroup>
+                <FormGroup>
+                  <Label for='password_input'> Enter your password: </Label>
+                  <InputGroup>
+                    <InputGroupAddon addonType='prepend'>
+                      <InputGroupText>
+                        <i className='fa fa-lock fa-lg' aria-hidden='true' />
+                      </InputGroupText>
+                    </InputGroupAddon>
+                    <Input
+                      type='password'
+                      name='password'
+                      valid={this.getPasswordValidationState()}
+                      value={this.state.password_value}
+                      onChange={this.handlePasswordChange}
+                      placeholder='Your password'
+                    />
+                  </InputGroup>
+                </FormGroup>
+                <FormGroup>
+                  <Label for='selectTeacher'>Select your teacher</Label>
+                  <InputGroup>
+                    <InputGroupAddon addonType='prepend'>
+                      <InputGroupText>
+                        <i className='fas fa-user' aria-hidden='true' />
+                      </InputGroupText>
+                    </InputGroupAddon>
+                    <Input type='select' name='select' id='selectTeacher' value={this.state.teacher_value}
+                      onChange={this.handleTeacherChange} placeholder='Your teacher'>
+                      {this.state.teachers}
+                    </Input>
                   </InputGroup>
                 </FormGroup>
               </Form>
@@ -350,4 +367,4 @@ class RegisterTeacher extends Component {
   };
 }
 
-export default RegisterTeacher
+export default RegisterUser

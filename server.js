@@ -144,9 +144,6 @@ console.log('resolved static path: ', path.resolve(__dirname, './client/build'))
 
 app.use(express.static(path.resolve(__dirname, './client/build')))
 
-app.get('/keybase.txt', (req, res) => {
-  res.sendFile('./keybase.txt')
-})
 app.get('/admin*', checkLoginMiddleware({ user: 'ADMIN' }))
 app.get('/teacher*', checkLoginMiddleware({ user: 'TEACHER' }))
 
@@ -176,7 +173,7 @@ app.post('/api/add-assignment', checkLoginMiddleware({ user: 'TEACHER' }), (req,
           short_url: false
         })
         .then(data => {
-          pdfFileURL = data.url.substring(0, data.url.length - 1) + '1'
+          pdfFileURL = data.url
           console.log('PDF link created: ', pdfFileURL)
           let arrLength = tasks instanceof Array ? tasks.length : 1
 
@@ -212,7 +209,7 @@ app.post('/api/add-assignment', checkLoginMiddleware({ user: 'TEACHER' }), (req,
             name,
             categories,
             tasks: tasksArray,
-            teacher: req.user.full_name
+            teacher: req.user.email
           })
             .save()
             .then(success => {
@@ -375,7 +372,9 @@ app.post('/api/register', (req, res) => {
                   password_hash: hash,
                   isApproved: false,
                   isTeacher: true,
-                  full_name: req.body.full_name,
+                  first_name: req.body.first_name,
+                  last_name: req.body.last_name,
+                  patronymic: req.body.patronymic,
                   school: req.body.school,
                   created_at: Date.now()
                 })
@@ -392,23 +391,40 @@ app.post('/api/register', (req, res) => {
                 break
               default:
                 console.log('request for default user registration, req.body: ', req.body)
-                new User({
-                  email: req.body.email,
-                  password_hash: hash,
-                  isApproved: false,
-                  isAdmin: false,
-                  teacher: req.body.teacher,
-                  created_at: Date.now()
-                })
-                  .save()
-                  .then(success => {
-                    res.status(200)
-                    res.json(AUTH_CONSTANTS.USER_ADDED_IN_DB)
-                  })
-                  .catch(err => {
-                    console.log('Error happened at /api/register: ', err)
-                    res.status(400)
-                    res.json(AUTH_CONSTANTS.CANT_INSERT_USER_IN_COLLECTION)
+                // get teacher email or throw exception
+                let [lastName, firstName, patronymic] = req.body.teacher.split(' ')
+                User.findOne({
+                  first_name: firstName,
+                  last_name: lastName,
+                  patronymic: patronymic
+                }).exec()
+                  .then(teacher => {
+                    if (teacher === null) {
+                      res.status(500)
+                      res.json(AUTH_CONSTANTS.NO_SUCH_TEACHER)
+                    } else {
+                      new User({
+                        email: req.body.email,
+                        first_name: req.body.first_name,
+                        last_name: req.body.last_name,
+                        patronymic: req.body.patronymic,
+                        password_hash: hash,
+                        isApproved: false,
+                        isAdmin: false,
+                        teacher: teacher.email,
+                        created_at: Date.now()
+                      })
+                        .save()
+                        .then(success => {
+                          res.status(200)
+                          res.json(AUTH_CONSTANTS.USER_ADDED_IN_DB)
+                        })
+                        .catch(err => {
+                          console.log('Error happened at /api/register: ', err)
+                          res.status(400)
+                          res.json(AUTH_CONSTANTS.CANT_INSERT_USER_IN_COLLECTION)
+                        })
+                    }
                   })
             }
           }
@@ -435,7 +451,7 @@ app.post('/api/approveUser', (req, res) => {
       console.log('teacher: ', req.user)
       User.findOne({
         email: req.body.email,
-        teacher: req.user.full_name
+        teacher: req.user.email
       })
         .exec()
         .then(user => {
@@ -529,7 +545,7 @@ app.post('/api/auth', (req, res, next) => {
       } else if (user.isTeacher) {
         res.redirect('/teacher')
       } else {
-        res.redirect('/add-info')
+        res.redirect('/assignments')
       }
     })
   })(req, res, next)
@@ -540,7 +556,7 @@ app.post('/api/getNotApprovedUsers', checkLoginMiddleware({ user: 'TEACHER' }), 
   console.log('Got request on api/getNotApprovedUsers')
   User.find({
     isApproved: false,
-    teacher: req.user.full_name
+    teacher: req.user.email
   })
     .exec()
     .then(found => {
@@ -562,35 +578,7 @@ app.post('/api/getNotApprovedUsers', checkLoginMiddleware({ user: 'TEACHER' }), 
     })
 })
 
-app.post('/api/add-info', checkLoginMiddleware({}), (req, res) => {
-  // TODO check add-info for user having session. If there is no session, redirect to login page.
-  let name = req.body.name
-  let grade = req.body.grade
-  let letter = req.body.letter
-
-  let updateObject = {
-    name,
-    grade,
-    letter
-  }
-
-  req.user.additional_info = updateObject
-
-  User.findByIdAndUpdate(req.user._id, req.user, {
-    new: true
-  })
-    .exec()
-    .then(updatedUser => {
-      res.status(200)
-      res.json(INFO_CONSTANTS.INFO_ADDED)
-    })
-    .catch(err => {
-      console.log('Error at /api/add-info: ', err)
-      res.status(500)
-      res.json(INFO_CONSTANTS.INFO_NOT_ADDED)
-    })
-})
-
+// TODO: find assignment by teacher
 app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
   const assignmentPack = req.body.assignmentPackName
   const assignmentID = req.body.assignmentID
@@ -644,7 +632,7 @@ app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
     }
 
     let testIterator = 1
-
+    console.log('task: ', task)
     task.tests.every(test => {
       try {
         let output = execSync(
@@ -667,12 +655,10 @@ app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
           res.status(500)
           CODE_TESTING_CONSTANTS.TESTS_FAILED.on_test = testIterator
           res.json(CODE_TESTING_CONSTANTS.TESTS_FAILED)
-          next()
-          return false
+          return next()
         }
 
         testIterator++
-        return true
       } catch (e) {
         console.log('Error happened while executing code.', e)
         res.status(500)
@@ -691,12 +677,12 @@ app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
     } else {
       for (let i = 0; i < req.user.assignments.length; i++) {
         if (req.user.assignments[i].packName === assignmentPack) {
-          if (req.user.assignments.finishedAssignments.includes(assignmentID)) {
+          if (req.user.assignments[i].finishedAssignments.includes(assignmentID)) {
             res.status(400)
             res.status(CODE_TESTING_CONSTANTS.TESTS_ALREADY_PASSED)
             next()
           } else {
-            req.user.assignments.finishedAssignments.push(assignmentID)
+            req.user.assignments[i].finishedAssignments.push(assignmentID)
           }
         }
         break
@@ -729,7 +715,7 @@ app.post('/api/getTeachersList', (req, res) => {
       let answer = []
 
       found.forEach(el => {
-        answer.push(el.full_name)
+        answer.push(`${el.last_name} ${el.first_name} ${el.patronymic}`)
       })
 
       res.status(200)
@@ -784,16 +770,11 @@ app.post('/api/getNotApprovedTeachers', checkLoginMiddleware({ user: 'ADMIN' }),
 })
 
 app.post('/api/get-info', checkLoginMiddleware({}), (req, res) => {
-  if (req.user === null || req.user.additional_info === undefined || req.user.additional_info === undefined) {
-    res.status(200)
-    res.json(INFO_CONSTANTS.INFO_NOT_ADDED)
-  } else {
-    res.status(200)
-    res.json({
-      success: INFO_CONSTANTS.INFO_ADDED,
-      name: req.user.additional_info.name
-    })
-  }
+  res.status(200)
+  res.json({
+    success: INFO_CONSTANTS.INFO_ADDED,
+    name: `${req.user.last_name} ${req.user.first_name} ${req.user.patronymic}`
+  })
 })
 
 app.listen(app.get('port'), () => {

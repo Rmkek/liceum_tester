@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { Col, Container, Card, CardTitle, CardText, CardGroup, CardBody } from 'reactstrap'
 import './Assignments.css'
-import { Link } from 'react-router-dom'
+import { Link, Redirect } from 'react-router-dom'
 
 class Assignments extends Component {
   constructor () {
@@ -11,10 +11,12 @@ class Assignments extends Component {
       assignments: '',
       keyIter: -1,
       assignments_json: {},
-      full_name: ''
+      full_name: '',
+      redirect: false,
+      redirect_url: ''
     }
   }
-
+  // get-info
   componentDidMount () {
     window.fetch(`api/assignments`, {
       headers: {
@@ -24,17 +26,37 @@ class Assignments extends Component {
       credentials: 'include',
       method: 'POST'
     })
-      .then(response => response.json())
-      .then(json => {
-        let assignmentArray = []
-        json.forEach(element => {
-          assignmentArray.push(this.renderAssignment(element))
-        })
-        this.setState({
-          assignments_json: json,
-          assignments: assignmentArray,
-          full_name: this.props.location.state.full_name
-        })
+      .then(response => {
+        if (response.redirected) {
+          this.setState({
+            redirect_url: response.url.substring(response.url.lastIndexOf('/'), response.url.length),
+            redirect: true
+          })
+        } else {
+          response.json().then(json => {
+            console.log(json)
+            let assignmentArray = []
+            json.forEach(element => {
+              assignmentArray.push(this.renderAssignment(element))
+            })
+
+            window.fetch('api/get-info', {
+              headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+              },
+              credentials: 'include',
+              method: 'POST'
+            }).then(response => response.json())
+              .then(json => {
+                this.setState({
+                  assignments_json: json,
+                  assignments: assignmentArray,
+                  full_name: json.name
+                })
+              })
+          })
+        }
       })
   };
 
@@ -56,6 +78,15 @@ class Assignments extends Component {
   };
 
   render () {
+    if (this.state.redirect) {
+      return (
+        <Redirect
+          to={{
+            pathname: this.state.redirect_url
+          }}
+        />
+      )
+    }
     return (
       <div>
         <Col xs={{ size: 4, offset: 2 }} md={{ size: 6, offset: 3 }}>

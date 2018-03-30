@@ -16,12 +16,11 @@ import {
   InputGroupText,
   Container
 } from 'reactstrap'
-import './App.css'
+import './Login.css'
 import { Redirect } from 'react-router-dom'
 import * as AUTH_CONSTANTS from '../../Backend_answers/AuthConstants'
-import Spinner from '../../Reusables/Spinner/Spinner'
 
-class App extends Component {
+class Login extends Component {
   constructor () {
     super()
 
@@ -33,54 +32,8 @@ class App extends Component {
       modal_text: '',
       contact_link: '',
       redirect: false,
-      redirect_url: '',
-      is_loading: true,
-      teachers: [],
-      teacher_value: ''
+      redirect_url: ''
     }
-
-    window.fetch(`api/checkForLogin`, {
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-      method: 'POST'
-    })
-      .then(response => {
-        if (response.redirected) {
-          console.log('Successfully logged in.')
-          this.setState({
-            is_loading: false,
-            redirect: true,
-            redirect_url: response.url.substring(response.url.lastIndexOf('/'), response.url.length) })
-        } else {
-          response.json().then(resp => {
-            if (resp === AUTH_CONSTANTS.NOT_LOGGED_IN) {
-              console.log('Not logged in')
-            }
-          })
-        }
-      })
-
-    window.fetch('api/getTeachersList', {
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-      method: 'POST'
-    }).then(res => res.json())
-      .then(json => {
-        let keyIter = 0
-        let teachersArr = this.state.teachers
-        json.forEach(teacher => {
-          teachersArr.push(<option key={keyIter}>{teacher}</option>)
-          keyIter++
-        })
-        this.setState({teachers: teachersArr,
-          is_loading: false})
-      })
 
     document.onkeypress = e => {
       if (e.keyCode === 13 && this.state.modal_shown) {
@@ -117,11 +70,6 @@ class App extends Component {
   handlePasswordChange = (e) => {
     this.setState({ password_value: e.target.value })
   };
-
-  handleTeacherChange = (e) => {
-    console.log('target: ', e.target.value)
-    this.setState({ teacher_value: e.target.value })
-  }
 
   closeModal = (e) => {
     this.setState({ modal_shown: false })
@@ -185,80 +133,7 @@ class App extends Component {
     }
   };
 
-  registerCallback = () => {
-    if (this.state.email_value !== '' && this.state.password_value !== '' && this.validateEmail(this.state.email_value) && this.teacher_value !== '') {
-      return window.fetch(`api/register`, {
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        method: 'POST',
-        body: JSON.stringify({
-          email: this.state.email_value,
-          pass: this.state.password_value,
-          teacher: this.state.teacher_value,
-          type: 'USER'
-        })
-      }).then(response => {
-        if (response.status === 200) {
-          this.setState({
-            modal_title: 'Registration successful',
-            modal_text: "Wait for teacher to approve your registration, until that you won't be able to log in.",
-            modal_shown: true,
-            contact_link: ''
-          })
-          return response
-        } else {
-          response.json().then(response => {
-            switch (response) {
-              case AUTH_CONSTANTS.WRONG_EMAIL:
-                this.setState({
-                  modal_title: 'Error',
-                  modal_text: 'Wrong email content. Use correct email address.'
-                })
-                break
-              case AUTH_CONSTANTS.EMAIL_ALREADY_IN_DB:
-                this.setState({
-                  modal_title: 'Error',
-                  modal_text:
-                    'Email is already listed in database. Wait for teacher to approve it, or (if you have been approved), try pressing Log in button.'
-                })
-                break
-              case AUTH_CONSTANTS.CANT_INSERT_USER_IN_COLLECTION:
-                this.setState({
-                  modal_title: 'Error',
-                  modal_text: 'Some backend exception happened. Report this incident to your teacher or to ',
-                  contact_link: (
-                    <a href='mailto:malyshkov.roman@gmail.com?subject=Liceum Tester'>
-                    Roman Malyshkov
-                    </a>
-                  )
-                })
-                break
-              default:
-                this.setState({
-                  modal_title: 'Error',
-                  modal_text: 'Something really, really bad mumbo-jumbo happened. Immediately report it to ',
-                  contact_link: (
-                    <a href='mailto:malyshkov.roman@gmail.com?subject=Liceum Tester'>
-                    Roman Malyshkov
-                    </a>
-                  )
-                })
-            }
-            this.setState({ modal_shown: true })
-          })
-        }
-      })
-    }
-  };
-
   render () {
-    if (this.state.is_loading) {
-      return <Spinner />
-    }
-
     if (this.state.redirect) {
       return (
         <Redirect
@@ -325,24 +200,7 @@ class App extends Component {
                     />
                   </InputGroup>
                 </FormGroup>
-                <FormGroup>
-                  <Label for='selectTeacher'>Select your teacher</Label>
-                  <InputGroup>
-                    <InputGroupAddon addonType='prepend'>
-                      <InputGroupText>
-                        <i className='fas fa-user' aria-hidden='true' />
-                      </InputGroupText>
-                    </InputGroupAddon>
-                    <Input type='select' name='select' id='selectTeacher' value={this.state.teacher_value}
-                      onChange={this.handleTeacherChange} placeholder='Your teacher'>
-                      {this.state.teachers}
-                    </Input>
-                  </InputGroup>
-                </FormGroup>
               </Form>
-              <Button color='primary' size='md' block onClick={this.registerCallback}>
-                Register
-              </Button>
               <Button color='primary' size='md' block onClick={this.authCallback}>
                 Log in
               </Button>
@@ -360,4 +218,4 @@ class App extends Component {
   };
 }
 
-export default App
+export default Login
