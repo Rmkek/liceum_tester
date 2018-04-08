@@ -1,102 +1,82 @@
 import React, { Component } from 'react'
-import { Table, Button } from 'reactstrap'
+import { Container, Card, CardBody, CardTitle, Button, Row, Col } from 'reactstrap'
+import { Link } from 'react-router-dom'
 import Spinner from '../../Reusables/Spinner/Spinner'
 import './Teacher.css'
 
-let keyIter = 0
-
 class Teacher extends Component {
-  constructor () {
-    super()
+  constructor (props) {
+    super(props)
 
     this.state = {
-      table_body: <tr />,
-      users_in_table: 0,
-      is_loading: true
+      is_loading: true,
+      unapprovedUsersAmount: 0,
+      assignmentsAmount: 0,
+      studentsAmount: 0
     }
 
-    window.fetch(`api/getNotApprovedUsers`, {
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json'
-      },
+    window.fetch(window.location.href, {
       credentials: 'include',
       method: 'POST'
     })
-      .then(response => response.json())
-      .then(resp => {
-        console.log('get not approved users: ', resp)
-        let users = []
-        resp.forEach(element => {
-          users.push(this.renderTableRow(element))
-        }, this)
-        this.setState({ table_body: users,
-          is_loading: false })
+      .then(res => {
+        if (res.redirected) {
+          this.setState({redirected: true, is_loading: false})
+        } else {
+          console.log('in else')
+          window.fetch('/api/get-profile-data', {
+            credentials: 'include',
+            method: 'POST'
+          })
+            .then(res => res.json())
+            .then(json => {
+              this.setState({ is_loading: false,
+                unapprovedUsersAmount: json.unapprovedUsersAmount,
+                assignmentsAmount: json.assignmentsAmount,
+                studentsAmount: json.studentsAmount})
+              console.log('this.state: ', this.state)
+            })
+            .catch(err => {
+              console.log('err: ', err)
+            })
+        }
+        console.log('in teacherpage response: ', res)
       })
-
-    this.handleChange = this.handleChange.bind(this)
+      .catch(err => {
+        console.log('err: ', err)
+      })
   }
 
-  handleChange = (event) => {
-    for (let i = 0; i < this.state.table_body.length; i++) {
-      let each = this.state.table_body[i]
-      if (each.key === event.target.getAttribute('index')) {
-        let email = each.props.children[1].props.children
-
-        window.fetch(`api/approveUser`, {
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include',
-          method: 'POST',
-          body: JSON.stringify({
-            email
-          })
-        }).then(response => {
-          if (response.status >= 200 && response.status < 300) {
-            this.state.table_body.splice(i, 1)
-            this.setState({
-              users_in_table: --this.state.users_in_table
-            })
-            this.setState({ table_body: this.state.table_body })
-          }
-        })
-      }
-    }
-  };
-
-  renderTableRow = (email) => {
-    this.setState({
-      users_in_table: ++this.state.users_in_table
-    })
-    ++keyIter
-    return (
-      <tr key={keyIter}>
-        <td>{this.state.users_in_table}</td>
-        <td>{email}</td>
-        <td>
-          <Button onClick={this.handleChange} index={keyIter}>
-            Approve
-          </Button>
-        </td>
-      </tr>
-    )
-  };
-
   render () {
-    return this.state.is_loading ? <Spinner />
-      : <Table bordered hover>
-        <thead>
-          <tr>
-            <th>№</th>
-            <th>E-mail</th>
-            <th>Approve</th>
-            {/* add categories */}
-          </tr>
-        </thead>
-        <tbody>{this.state.table_body}</tbody>
-      </Table>
+    return this.state.is_loading ? <Spinner /> : (<Row><Col xs={{offset: 3, size: 6}}>
+      <Container>
+        <Card className='content-container'>
+          <CardBody>
+            <CardTitle>Teacher</CardTitle>
+            {/* teacher naming */}
+            <Row className='teacher-menu'>
+              <Col xs='4'><h3>My Assignments</h3></Col>
+              <Col xs='6' />
+              <Col xs='2'><Button className='inline-button'>Go to my assignments</Button></Col>
+              {/* data */}
+              <Col xs='4'><p>Added {this.state.assignmentsAmount} assignments.</p></Col>
+            </Row>
+            <Row className='teacher-menu'>
+              <Col xs='4'><h3>My Students</h3></Col>
+              <Col xs='6' />
+              <Col xs='2'><Link to='/teacher/my-students'><Button className='inline-button'>Go to my students</Button></Link></Col>
+              <Col xs='4'><p>Approved {this.state.studentsAmount} students.</p></Col>
+            </Row>
+            <Row className='teacher-menu'>
+              <Col xs='4'><h3>Unapproved Students</h3></Col>
+              <Col xs='6' />
+              <Col xs='2'><Link to='/teacher/approve-students'><Button color={this.state.unapprovedUsersAmount > 0 ? 'success' : 'secondary'} className='inline-button'>Approve students</Button></Link></Col>
+              <Col xs='4'><p>There is {this.state.unapprovedUsersAmount} unapproved students.</p></Col>
+            </Row>
+          </CardBody>
+        </Card>
+      </Container>
+    </Col></Row>)
   }
 }
 

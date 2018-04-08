@@ -10,14 +10,16 @@ import TeacherPage from './Pages/Teacher/TeacherPage'
 import Landing from './Pages/Landing/Landing'
 import Login from './Pages/Login/Login'
 import Assignments from './Pages/User/Assignments/Assignments'
-import RegisterTeacher from './Pages/Teacher/RegisterTeacher'
 import RegisterUser from './Pages/User/RegisterUser'
 import Assignment from './Pages/User/Assignments/Assignment/Assignment'
 
 import Admin from './Pages/Admin/Admin'
-import AddAssignments from './Pages/Admin/AddAssignments/AddAssignments'
 
 import Teacher from './Pages/Teacher/Teacher'
+import AddAssignments from './Pages/Teacher/AddAssignments/AddAssignments'
+import ApproveStudents from './Pages/Teacher/ApproveStudents/ApproveStudents'
+import RegisterTeacher from './Pages/Teacher/RegisterTeacher/RegisterTeacher'
+import MyStudents from './Pages/Teacher/MyStudents/MyStudents'
 
 import 'bootstrap/dist/css/bootstrap.css'
 import './index.css'
@@ -37,6 +39,8 @@ ReactDOM.render(
 
       <Route exact path='/teacher' render={routeProps => <TeacherPage component={<Teacher />} />} />
       <Route exact path='/teacher/add-assignments' render={() => <TeacherPage component={<AddAssignments />} />} />
+      <Route exact path='/teacher/approve-students' render={() => <TeacherPage component={<ApproveStudents />} />} />
+      <Route exact path='/teacher/my-students' render={() => <TeacherPage component={<MyStudents />} />} />
 
       <Route exact path='/admin' render={() => <AdminPage component={<Admin />} />} />
     </div>

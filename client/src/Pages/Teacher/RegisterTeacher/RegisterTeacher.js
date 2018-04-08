@@ -16,9 +16,9 @@ import {
   InputGroupText,
   Container
 } from 'reactstrap'
-import './register_teacher.css'
+import './RegisterTeacher.css'
 import { Redirect } from 'react-router-dom'
-import * as AUTH_CONSTANTS from '../../Backend_answers/AuthConstants'
+import * as AUTH_CONSTANTS from '../../../Backend_answers/AuthConstants'
 
 class RegisterTeacher extends Component {
   constructor () {

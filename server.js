@@ -144,15 +144,21 @@ console.log('resolved static path: ', path.resolve(__dirname, './client/build'))
 
 app.use(express.static(path.resolve(__dirname, './client/build')))
 
-app.get('/admin*', checkLoginMiddleware({ user: 'ADMIN' }))
-app.get('/teacher*', checkLoginMiddleware({ user: 'TEACHER' }))
+app.post('/admin*', checkLoginMiddleware({ user: 'ADMIN' }), (req, res) => {
+  res.status(200)
+  res.json(AUTH_CONSTANTS.CORRECT_PASSWORD)
+})
+app.post('/teacher*', checkLoginMiddleware({user: 'TEACHER'}), (req, res) => {
+  res.status(200)
+  res.json(AUTH_CONSTANTS.CORRECT_PASSWORD)
+})
 
 // refactor?
 app.post('/api/add-assignment', checkLoginMiddleware({ user: 'TEACHER' }), (req, res) => {
   console.log('Got request on /api/add-assignment, body: ', req.body)
 
   let name = req.body.assignmentPackName
-  let categories = req.body.assignmentPackCategories.split(',')
+  let category = req.body.category
   let pdfFile = req.files.pdfTasks
   let tasks = req.body.assignmentNames
   let tasksArray = []
@@ -202,12 +208,12 @@ app.post('/api/add-assignment', checkLoginMiddleware({ user: 'TEACHER' }), (req,
           console.log('Ready to save in database!')
           console.log('pdf: ', pdfFileURL)
           console.log('name: ', name)
-          console.log('categories: ', categories)
+          console.log('category: ', category)
           console.log('tasks: ', tasksArray)
           new AssignmentPacks({
             pdfPath: pdfFileURL,
             name,
-            categories,
+            category,
             tasks: tasksArray,
             teacher: req.user.email
           })
@@ -439,7 +445,6 @@ app.post('/api/register', (req, res) => {
 })
 
 app.post('/api/approveUser', (req, res) => {
-  // TODO: check for user being admin
   if (
     req.user !== undefined &&
     req.user.isTeacher !== undefined &&
@@ -516,6 +521,23 @@ app.post('/api/approveUser', (req, res) => {
   }
 })
 
+app.post('/api/remove-user', checkLoginMiddleware({user: 'TEACHER'}), (req, res) => {
+  User.findOneAndRemove({
+    email: req.body.email
+  })
+    .exec()
+    .then(result => {
+      console.log('result: ', result)
+      res.status(200)
+      res.json(APPROVE_USER_CONSTANTS.USER_REMOVED)
+    })
+    .catch(err => {
+      console.log('error happened when removing at /api/remove-user', err)
+      res.status(500)
+      res.json(APPROVE_USER_CONSTANTS.SERVER_ERROR)
+    })
+})
+
 app.post('/api/auth', (req, res, next) => {
   req.body.email = req.body.email.toLowerCase()
   passport.authenticate('local', (err, user) => {
@@ -552,7 +574,6 @@ app.post('/api/auth', (req, res, next) => {
 })
 
 app.post('/api/getNotApprovedUsers', checkLoginMiddleware({ user: 'TEACHER' }), (req, res) => {
-  // TODO check for user being admin
   console.log('Got request on api/getNotApprovedUsers')
   User.find({
     isApproved: false,
@@ -561,9 +582,10 @@ app.post('/api/getNotApprovedUsers', checkLoginMiddleware({ user: 'TEACHER' }), 
     .exec()
     .then(found => {
       let answer = []
-
+      console.log(found)
       found.forEach(el => {
-        answer.push(el.email)
+        answer.push({email: el.email,
+          full_name: `${el.last_name} ${el.first_name} ${el.patronymic}` })
       })
 
       res.status(200)
@@ -775,6 +797,131 @@ app.post('/api/get-info', checkLoginMiddleware({}), (req, res) => {
     success: INFO_CONSTANTS.INFO_ADDED,
     name: `${req.user.last_name} ${req.user.first_name} ${req.user.patronymic}`
   })
+})
+
+app.post('/api/update-student-categories', checkLoginMiddleware({user: 'TEACHER'}), (req, res) => {
+  console.log('req.body: ', req.body)
+  User.findOneAndUpdate({isApproved: true, teacher: req.user.email, email: req.body.email}, {$set: {categories: req.body.categories}})
+    .exec()
+    .then(user => {
+      console.log('user: ', user)
+      res.status(200)
+    })
+    .catch(err => {
+      console.log('err: ', err)
+      res.status(500)
+    })
+
+  // User.updateOne({
+  //   isApproved: true,
+  //   teacher: req.user.teacher
+  // },
+  // {$set: { categories: req.body.categories }},
+  // {new: true}
+  // )
+  //   .exec()
+  //   .then(updatedUser => {
+  //     console.log('updated user: ', updatedUser)
+  //     res.status(200)
+  //   })
+  //   .catch(err => {
+  //     console.log('Error at /api/update-student-code:', err)
+  //     res.status(500)
+  //   })
+})
+
+app.post('/api/get-teacher-students', checkLoginMiddleware({user: 'TEACHER'}), (req, res) => {
+  User.find({
+    isApproved: true,
+    teacher: req.user.email
+  })
+    .exec()
+    .then(found => {
+      let students = []
+      if (found.length === 0) {
+        res.status(200)
+        res.json(students)
+      } else {
+        found.forEach(e => {
+          students.push({full_name: `${e.last_name} ${e.first_name} ${e.patronymic}`,
+            email: e.email,
+            categories: e.categories })
+        })
+        res.status(200)
+        res.json(students)
+      }
+    })
+})
+
+app.post('/api/get-teacher-categories', checkLoginMiddleware({user: 'TEACHER'}), (req, res) => {
+  AssignmentPacks.find({
+    teacher: req.user.email
+  })
+    .exec()
+    .then(found => {
+      if (found !== null || found.length !== 0) {
+        let categories = []
+        found.forEach(e => {
+          categories.push({label: e.category, value: e.category})
+        })
+        res.status(200)
+        res.json({categories})
+      } else {
+        res.status(200)
+        res.json({categories: []})
+      }
+    })
+})
+
+app.post('/api/get-profile-data', checkLoginMiddleware({user: 'TEACHER'}), (req, res) => {
+  let output = {}
+  User.find({
+    isApproved: false,
+    teacher: req.user.email
+  })
+    .exec()
+    .then(found => {
+      if (found.length !== 0) {
+        output['unapprovedUsersAmount'] = found.length
+      } else {
+        output['unapprovedUsersAmount'] = 0
+      }
+
+      AssignmentPacks.find({
+        teacher: req.user.email
+      })
+        .exec()
+        .then(found => {
+          if (found !== null) {
+            output['assignmentsAmount'] = found.length
+          } else {
+            output['assignmentsAmount'] = 0
+          }
+
+          User.find({
+            teacher: req.user.email,
+            isApproved: true
+          })
+            .exec()
+            .then(found => {
+              if (found !== null) {
+                output['studentsAmount'] = found.length
+              } else {
+                output['studentsAmount'] = 0
+              }
+
+              res.status(200)
+              res.json(output)
+            })
+        })
+    })
+    .catch(err => {
+      console.log('Error at /api/get-profile-data when searching for notapproved users', err)
+      res.status(500)
+      res.json({
+        SERVER_ERROR: 'SERVER_ERROR'
+      })
+    })
 })
 
 app.listen(app.get('port'), () => {

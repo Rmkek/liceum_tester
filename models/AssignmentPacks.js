@@ -4,7 +4,7 @@ const AssignmentTask = require('./schemas/AssignmentTask')
 
 const assignmentPacksSchema = Schema({
   name: { type: String, required: true },
-  categories: { type: [String], required: true },
+  category: { type: String, required: true },
   pdfPath: { type: String, required: true },
   tasks: { type: [AssignmentTask], required: true },
   teacher: { type: String, required: true }

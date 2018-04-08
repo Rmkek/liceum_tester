@@ -16,7 +16,7 @@ class AdminPage extends Component {
 
     window.fetch(window.location.href, {
       credentials: 'include',
-      method: 'GET'
+      method: 'POST'
     })
       .then(res => {
         if (res.redirected) {

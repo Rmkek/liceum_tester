@@ -51,6 +51,10 @@ const userSchema = Schema({
   created_at: {
     type: Date,
     required: true
+  },
+  categories: {
+    type: [String],
+    required: false
   }
 })
 

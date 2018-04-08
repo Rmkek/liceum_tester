@@ -27,3 +27,4 @@ yarn-error.log*
 
 # Removing vscode configurations.
 .vscode
+/.vscode

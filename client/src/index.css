@@ -7,6 +7,8 @@ body {
   -moz-animation: Background 720s ease infinite;
   -o-animation: Background 720s ease infinite;
   animation: Background 720s ease infinite;
+  /* hide horizontal scroll*/
+  overflow-x: hidden;
 }
 
 @-webkit-keyframes Background {

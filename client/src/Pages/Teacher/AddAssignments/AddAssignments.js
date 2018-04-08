@@ -1,6 +1,9 @@
 import React, { Component } from 'react'
 import { Container, Col, Form, FormGroup, Label, Input, Button, Card, CardTitle, CardBody, Row } from 'reactstrap'
 import './AddAssignments.css'
+import Select from 'react-select'
+import 'react-select/dist/react-select.css'
+
 class AddAssignments extends Component {
   constructor () {
     super()
@@ -52,19 +55,37 @@ class AddAssignments extends Component {
             </Col>
           </Col>
         </Col>
-      )
+      ),
+      value: undefined,
+      options: []
     }
+
+    window.fetch('/api/get-teacher-categories', {
+      credentials: 'include',
+      method: 'POST'
+    })
+      .then(res => res.json())
+      .then(json => {
+        if (json.categories.length === 0) {
+          this.setState({options: []})
+        } else {
+          this.setState({options: json.categories})
+        }
+        console.log('this.state: ', this.state)
+      })
+      .catch(err => {
+        console.log('err when requesting /api/get-teacher-categories: ', err)
+      })
   }
 
   sendHandler = (e) => {
     e.preventDefault()
     const data = new window.FormData(document.getElementById('mainForm'))
     data.append('file', document.getElementById('pdfTasks'))
-    console.log(data.values())
-    console.log(data.entries())
-    console.log('printing data.entries')
+    data.append('category', this.state.value.value)
+
     for (let pair of data.entries()) {
-      if (pair[1] === null || pair[1] === '' || pair[1] === undefined) {
+      if (pair[1] === null || pair[1] === '' || pair[1] === undefined || (this.state.value === undefined && this.state.options.length === 0)) {
         window.alert('One of form fields is not present. Fill it, before continuing.')
       }
     }
@@ -186,6 +207,12 @@ class AddAssignments extends Component {
     })
   }
 
+  handleChange = (value) => {
+    console.log('value: ', value)
+    this.setState({value: value})
+    console.log('state after changing: ', this.state)
+  }
+
   render () {
     return (
       <Container>
@@ -204,11 +231,17 @@ class AddAssignments extends Component {
               </FormGroup>
               <FormGroup row>
                 {/* TODO: Maybe add category picking from list */}
-                <Label for='assignmentPackCategories' sm={2}>
-                  Pack categories
+                <Label for='assignmentPackCategory' sm={2}>
+                  Pack category
                 </Label>
                 <Col sm={10}>
-                  <Input name='assignmentPackCategories' id='assignmentPackCategories' placeholder='Example: hard, 10A, 9B' />
+                  <Select.Creatable
+                    name='form-field-name'
+                    placeholder='Select or create new one'
+                    value={this.state.value}
+                    onChange={this.handleChange}
+                    options={this.state.options}
+                  />
                 </Col>
               </FormGroup>
               <FormGroup row>
