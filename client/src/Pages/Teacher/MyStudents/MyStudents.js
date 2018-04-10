@@ -58,55 +58,54 @@ class MyStudents extends Component {
     this.handleChange = this.handleChange.bind(this)
   }
 
+  updateCategories = (categories, email) => {
+    console.log('throwing api request')
+    window.fetch(`/api/update-student-categories`, {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      method: 'POST',
+      body: JSON.stringify({
+        categories: categories,
+        email: email
+      })
+    })
+      .then(response => {
+        console.log(response)
+      })
+  }
+
   handleChange = (value, email) => {
     console.log('value: ', value)
     console.log('email: ', email)
+
     let newState = []
     for (let i = 0; i < this.state.students.length; i++) {
       if (this.state.students[i].email === email) {
         if (value.length === 0) {
-          console.log('throwing api request')
-          window.fetch(`/api/update-student-categories`, {
-            headers: {
-              Accept: 'application/json',
-              'Content-Type': 'application/json'
-            },
-            credentials: 'include',
-            method: 'POST',
-            body: JSON.stringify({
-              categories: [],
-              email: email
-            })
-          })
-            .then(response => {
-              console.log(response)
-            })
+          this.updateCategories([], email)
           newState.push({full_name: this.state.students[i].full_name, email: this.state.students[i].email, categories: []})
         } else {
           let foundStudentCategories = this.state.students[i].categories
-          foundStudentCategories.push(value[0])
-          let fetchCategories = []
-          for (let i = 0; i < foundStudentCategories.length; i++) {
-            fetchCategories.push(foundStudentCategories[i].value)
+          if (foundStudentCategories.includes(value[0])) { // if value is already in the array then we should delete it
+            foundStudentCategories.splice(foundStudentCategories.indexOf(value[0], 1))
+            let fetchCategories = []
+            for (let i = 0; i < foundStudentCategories.length; i++) {
+              fetchCategories.push(foundStudentCategories[i].value)
+            }
+            this.updateCategories(fetchCategories, email)
+            newState.push({ full_name: this.state.students[i].full_name, email: this.state.students[i].email, categories: foundStudentCategories })
+          } else { // if value is not in array then we add it
+            foundStudentCategories.push(value[0])
+            let fetchCategories = []
+            for (let i = 0; i < foundStudentCategories.length; i++) {
+              fetchCategories.push(foundStudentCategories[i].value)
+            }
+            this.updateCategories(fetchCategories, email)
+            newState.push({ full_name: this.state.students[i].full_name, email: this.state.students[i].email, categories: foundStudentCategories })
           }
-          console.log('fetchcategories: ', fetchCategories)
-          console.log('throwing api request')
-          window.fetch(`/api/update-student-categories`, {
-            headers: {
-              Accept: 'application/json',
-              'Content-Type': 'application/json'
-            },
-            credentials: 'include',
-            method: 'POST',
-            body: JSON.stringify({
-              categories: fetchCategories,
-              email: email
-            })
-          })
-            .then(response => {
-              console.log(response)
-            })
-          newState.push({ full_name: this.state.students[i].full_name, email: this.state.students[i].email, categories: foundStudentCategories })
         }
       } else {
         newState.push(this.state.students[i])
@@ -115,6 +114,12 @@ class MyStudents extends Component {
 
     this.setState({students: newState})
     console.log('state after changing: ', this.state)
+  }
+
+  intersection = (array1, array2) => {
+    return array1.filter((each) => {
+      return array2.indexOf(each) !== -1
+    })
   }
 
   removeStudent = (event) => {
@@ -172,7 +177,6 @@ class MyStudents extends Component {
                             : <Select
                               name={`categories-${e.email}`}
                               multi
-                              removeSelected={false}
                               placeholder='Select a few...'
                               value={e.categories}
                               onChange={(value) => this.handleChange(value, e.email)}

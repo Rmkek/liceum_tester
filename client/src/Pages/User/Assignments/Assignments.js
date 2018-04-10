@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
-import { Col, Container, Card, CardTitle, CardText, CardGroup, CardBody } from 'reactstrap'
+import { Col, Container, Card, CardTitle, CardGroup, CardBody } from 'reactstrap'
 import './Assignments.css'
-import { Link, Redirect } from 'react-router-dom'
+import { Redirect } from 'react-router-dom'
 
 class Assignments extends Component {
   constructor () {
@@ -16,15 +16,19 @@ class Assignments extends Component {
       redirect_url: ''
     }
   }
-  // get-info
+
   componentDidMount () {
-    window.fetch(`api/assignments`, {
+    console.log('state: ', this.props.location.state.category)
+    window.fetch(`/api/assignments`, {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json'
       },
       credentials: 'include',
-      method: 'POST'
+      method: 'POST',
+      body: JSON.stringify({
+        category: this.props.location.state.category
+      })
     })
       .then(response => {
         if (response.redirected) {
@@ -34,13 +38,13 @@ class Assignments extends Component {
           })
         } else {
           response.json().then(json => {
-            console.log(json)
+            console.log('json: ', json)
             let assignmentArray = []
             json.forEach(element => {
-              assignmentArray.push(this.renderAssignment(element))
+              assignmentArray.push(this.renderCategory(element))
             })
 
-            window.fetch('api/get-info', {
+            window.fetch('/api/get-info', {
               headers: {
                 Accept: 'application/json',
                 'Content-Type': 'application/json'
@@ -60,22 +64,38 @@ class Assignments extends Component {
       })
   };
 
-  renderAssignment (elem) {
+  renderCategory = (elem) => {
     this.setState({ keyIter: ++this.state.keyIter })
     return (
-      <Link
-        key={this.state.keyIter}
-        className={elem.name.length >= 20 ? 'assignment__link__margin-top' : 'assignment__link'}
-        to={`/assignment/${encodeURI(elem.name)}`}>
-        <Card className='assignment__thumbnail'>
-          <CardBody>
-            <CardTitle className='assignment__thumbnail-title'>{elem.name}</CardTitle>
-            <CardText>{elem.category}</CardText>
+      <Col xs={2} key={this.state.keyIter} className='category__container'>
+        {/* <Link className='assignment__link' to={{
+          pathname: `/${window.location.href.split('/')[3]}/assignments/${encodeURI(category.value)}`,
+          state: { category: category.value }
+        }}> */}
+        <Card >
+          <CardBody className='category__body'>
+            <CardTitle>{elem.name}</CardTitle>
           </CardBody>
         </Card>
-      </Link>
+        {/* </Link> */}
+      </Col>
     )
-  };
+  }
+
+  renderAssignment (elem) {
+    // this.setState({ keyIter: ++this.state.keyIter })
+    // return (
+    //   <Col xs={2} key={this.state.keyIter} className='category__container'>
+    //     <Link to={`/${window.location.href.split('/')[3]}/assignments/${encodeURI(category.value)}`} className='assignment__link'>
+    //       <Card >
+    //         <CardBody className='category__body'>
+    //           <CardTitle>{category.value.toUpperCase()}</CardTitle>
+    //         </CardBody>
+    //       </Card>
+    //     </Link>
+    //   </Col>
+    // )
+  }
 
   render () {
     if (this.state.redirect) {
@@ -89,8 +109,8 @@ class Assignments extends Component {
     }
     return (
       <div>
-        <Col xs={{ size: 4, offset: 2 }} md={{ size: 6, offset: 3 }}>
-          <Container className='assignment-container bg-aqua'>
+        <Col xs={12}>
+          <Container className='assignment-container'>
             <h1 className='alert-heading alert__h1'>Your assignments</h1>
             <small className='alert-heading logged_in'>Logged in as {this.state.full_name}</small>
             <CardGroup className='border--blue assignment-link'>{this.state.assignments}</CardGroup>

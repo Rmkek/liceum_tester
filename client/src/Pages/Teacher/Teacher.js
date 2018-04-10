@@ -33,7 +33,8 @@ class Teacher extends Component {
               this.setState({ is_loading: false,
                 unapprovedUsersAmount: json.unapprovedUsersAmount,
                 assignmentsAmount: json.assignmentsAmount,
-                studentsAmount: json.studentsAmount})
+                studentsAmount: json.studentsAmount,
+                full_name: json.full_name})
               console.log('this.state: ', this.state)
             })
             .catch(err => {
@@ -52,13 +53,11 @@ class Teacher extends Component {
       <Container>
         <Card className='content-container'>
           <CardBody>
-            <CardTitle>Teacher</CardTitle>
-            {/* teacher naming */}
+            <CardTitle>Logged as {this.state.full_name}</CardTitle>
             <Row className='teacher-menu'>
               <Col xs='4'><h3>My Assignments</h3></Col>
               <Col xs='6' />
-              <Col xs='2'><Button className='inline-button'>Go to my assignments</Button></Col>
-              {/* data */}
+              <Col xs='2'><Link to='/teacher/categories'><Button className='inline-button'>Go to my assignments</Button></Link></Col>
               <Col xs='4'><p>Added {this.state.assignmentsAmount} assignments.</p></Col>
             </Row>
             <Row className='teacher-menu'>

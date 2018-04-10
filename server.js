@@ -153,7 +153,6 @@ app.post('/teacher*', checkLoginMiddleware({user: 'TEACHER'}), (req, res) => {
   res.json(AUTH_CONSTANTS.CORRECT_PASSWORD)
 })
 
-// refactor?
 app.post('/api/add-assignment', checkLoginMiddleware({ user: 'TEACHER' }), (req, res) => {
   console.log('Got request on /api/add-assignment, body: ', req.body)
 
@@ -241,24 +240,34 @@ app.post('/api/add-assignment', checkLoginMiddleware({ user: 'TEACHER' }), (req,
     })
 })
 
-app.post('/api/assignments', checkLoginMiddleware({}), (req, res) => {
-  AssignmentPacks.find({ teacher: req.user.teacher })
-    .exec()
-    .then(found => {
-      const output = []
-
-      found.forEach(element => {
-        output.push({
-          name: element.name,
-          category: element.category
+app.post('/api/assignments', (req, res) => {
+  if (req.user !== undefined && req.body !== undefined) {
+    if (req.user.isTeacher) {
+      AssignmentPacks.find({teacher: req.user.email, category: req.body.category})
+        .exec()
+        .then(found => {
+          console.log(found)
+          let output = []
+          found.forEach(elem => {
+            output.push({
+              pdfPath: elem.pdfPath,
+              name: elem.name,
+              tasks: elem.tasks
+            })
+          })
+          console.log('output: ', output)
+          res.status(200)
+          res.json(output)
         })
-      })
-      res.status(200)
-      res.json(output)
-    })
-    .catch(err => {
-      console.log('Error happened at /api/assignments ', err)
-    })
+        .catch(err => {
+          console.log('Error happened at /api/assignments', err)
+        })
+    } else {
+
+    }
+  } else {
+    res.redirect('/')
+  }
 })
 
 app.post('/api/getAssignmentPack', checkLoginMiddleware({}), (req, res, next) => {
@@ -811,23 +820,6 @@ app.post('/api/update-student-categories', checkLoginMiddleware({user: 'TEACHER'
       console.log('err: ', err)
       res.status(500)
     })
-
-  // User.updateOne({
-  //   isApproved: true,
-  //   teacher: req.user.teacher
-  // },
-  // {$set: { categories: req.body.categories }},
-  // {new: true}
-  // )
-  //   .exec()
-  //   .then(updatedUser => {
-  //     console.log('updated user: ', updatedUser)
-  //     res.status(200)
-  //   })
-  //   .catch(err => {
-  //     console.log('Error at /api/update-student-code:', err)
-  //     res.status(500)
-  //   })
 })
 
 app.post('/api/get-teacher-students', checkLoginMiddleware({user: 'TEACHER'}), (req, res) => {
@@ -851,6 +843,165 @@ app.post('/api/get-teacher-students', checkLoginMiddleware({user: 'TEACHER'}), (
         res.json(students)
       }
     })
+})
+
+app.post('/api/teacher-update-assignment', checkLoginMiddleware({user: 'TEACHER'}), (req, res) => {
+  console.log('updating assignment...: ', req.body)
+  let databaseObject = {}
+  let assignmentName = req.body.assignmentName
+  let name = req.body.assignmentPackName
+  let category = req.body.category
+  let pdfFile = req.files.pdfTasks
+  let tasks = req.body.assignmentNames
+  let tasksArray = []
+
+  let pdfFileURL = `/${uuid()}.pdf`
+  if (pdfFile !== undefined) {
+    dbx
+      .filesUpload({
+        path: pdfFileURL,
+        contents: pdfFile.data
+      })
+      .then(response => {
+        const uploadedFilePath = response.path_display
+        console.log('pdf is now on dropbox')
+        dbx
+          .sharingCreateSharedLink({
+            path: uploadedFilePath,
+            short_url: false
+          })
+          .then(data => {
+            pdfFileURL = data.url
+            console.log('PDF link created: ', pdfFileURL)
+            let arrLength = tasks instanceof Array ? tasks.length : 1
+
+            for (let i = 0; i < arrLength; i++) {
+              let j = 0
+              let tempTests = []
+
+              while (req.body[`test_input_${i + 1}-${j + 1}`] !== undefined) {
+                let inputTest = req.body[`test_input_${i + 1}-${j + 1}`]
+                let outputTest = req.body[`test_input_${i + 1}-${j + 1}`]
+                tempTests.push({
+                  input: inputTest,
+                  output: outputTest
+                })
+                j++
+              }
+
+              let testsOutput = new AssignmentTaskModel({
+                name: arrLength === 1 ? tasks : tasks[i],
+                tests: tempTests
+              })
+
+              tasksArray.push(testsOutput)
+            }
+
+            console.log('Ready to update database!')
+            console.log('pdf: ', pdfFileURL)
+            console.log('name: ', name)
+            console.log('category: ', category)
+            console.log('tasks: ', tasksArray)
+
+            databaseObject['pdfPath'] = pdfFileURL
+
+            if (category !== undefined) {
+              databaseObject['category'] = category
+            }
+
+            if (name !== undefined) {
+              databaseObject['name'] = name
+            }
+
+            if (tasks !== undefined) {
+              databaseObject['tasks'] = tasksArray
+            }
+
+            console.log('dbobject: ', databaseObject)
+            AssignmentPacks.findOneAndUpdate({
+              teacher: req.user.email,
+              name: assignmentName},
+            {$set: databaseObject}
+            )
+              .exec()
+              .then(response => {
+                console.log('got response after updating db object: ', response)
+                res.status(200)
+              })
+              .catch(err => {
+                console.log('err at /api/teacher-update-assignment', err)
+                res.status(500)
+              })
+          })
+          .catch(err => {
+            res.status(400)
+            res.json(ASSIGNMENT_CONSTANTS.ASSIGNMENT_NOT_ADDED)
+            console.log('Exception happened when sharing assignment: ', err)
+          })
+      })
+      .catch(err => {
+        res.status(400)
+        res.json(ASSIGNMENT_CONSTANTS.ASSIGNMENT_NOT_ADDED)
+        console.log('Exception happened when uploading assignment to dropbox: ', err)
+      })
+  } else {
+    let arrLength = tasks instanceof Array ? tasks.length : 1
+
+    for (let i = 0; i < arrLength; i++) {
+      let j = 0
+      let tempTests = []
+
+      while (req.body[`test_input_${i + 1}-${j + 1}`] !== undefined) {
+        let inputTest = req.body[`test_input_${i + 1}-${j + 1}`]
+        let outputTest = req.body[`test_input_${i + 1}-${j + 1}`]
+        tempTests.push({
+          input: inputTest,
+          output: outputTest
+        })
+        j++
+      }
+
+      let testsOutput = new AssignmentTaskModel({
+        name: arrLength === 1 ? tasks : tasks[i],
+        tests: tempTests
+      })
+
+      tasksArray.push(testsOutput)
+    }
+
+    console.log('Ready to update database!')
+    console.log('name: ', name)
+    console.log('category: ', category)
+    console.log('tasks: ', tasksArray)
+
+    if (category !== undefined) {
+      databaseObject['category'] = category
+    }
+
+    if (name !== undefined) {
+      databaseObject['name'] = name
+    }
+
+    if (tasks !== undefined) {
+      databaseObject['tasks'] = tasksArray
+    }
+
+    console.log('dbobject: ', databaseObject)
+    AssignmentPacks.findOneAndUpdate({
+      teacher: req.user.email,
+      name: assignmentName},
+    {$set: databaseObject}
+    )
+      .exec()
+      .then(response => {
+        console.log('got response after updating db object: ', response)
+        res.status(200)
+      })
+      .catch(err => {
+        console.log('err at /api/teacher-update-assignment', err)
+        res.status(500)
+      })
+  }
 })
 
 app.post('/api/get-teacher-categories', checkLoginMiddleware({user: 'TEACHER'}), (req, res) => {
@@ -909,6 +1060,7 @@ app.post('/api/get-profile-data', checkLoginMiddleware({user: 'TEACHER'}), (req,
               } else {
                 output['studentsAmount'] = 0
               }
+              output['full_name'] = `${req.user.last_name} ${req.user.first_name} ${req.user.patronymic}`
 
               res.status(200)
               res.json(output)

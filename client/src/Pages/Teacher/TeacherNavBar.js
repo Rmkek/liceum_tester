@@ -14,6 +14,9 @@ class TeacherNavBar extends Component {
             <NavLink href='/teacher/my-students'>My Students</NavLink>
           </NavItem>
           <NavItem>
+            <NavLink href='/teacher/categories'>My Assignments</NavLink>
+          </NavItem>
+          <NavItem>
             <NavLink href='/teacher/add-assignments/'>Add Assignments</NavLink>
           </NavItem>
         </Nav>
