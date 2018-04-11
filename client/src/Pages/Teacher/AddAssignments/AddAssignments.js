@@ -1,6 +1,8 @@
 import React, { Component } from 'react'
 import { Container, Col, Form, FormGroup, Label, Input, Button, Card, CardTitle, CardBody, Row } from 'reactstrap'
 import './AddAssignments.css'
+import Spinner from '../../../Reusables/Spinner/Spinner'
+import { Redirect } from 'react-router-dom'
 import Select from 'react-select'
 import 'react-select/dist/react-select.css'
 
@@ -57,7 +59,10 @@ class AddAssignments extends Component {
         </Col>
       ),
       value: undefined,
-      options: []
+      options: [],
+      loading: false,
+      redirect: false,
+      redirect_url: ''
     }
 
     window.fetch('/api/get-teacher-categories', {
@@ -90,6 +95,8 @@ class AddAssignments extends Component {
       }
     }
 
+    this.setState({loading: true})
+
     window.fetch(`/api/add-assignment`, {
       accept: 'application/json',
       credentials: 'include',
@@ -99,6 +106,7 @@ class AddAssignments extends Component {
       .then(response => response.json())
       .then(resp => {
         console.log(resp)
+        this.setState({loading: false, redirect: true, redirect_url: '/teacher/categories'})
       })
   }
 
@@ -214,8 +222,18 @@ class AddAssignments extends Component {
   }
 
   render () {
-    return (
-      <Container>
+    if (this.state.redirect) {
+      return (
+        <Redirect
+          to={{
+            pathname: this.state.redirect_url
+          }}
+        />
+      )
+    }
+
+    return (this.state.loading ? <Spinner />
+      : <Container>
         <Card className='pack__container'>
           <CardBody>
             <CardTitle>Add assignment pack</CardTitle>

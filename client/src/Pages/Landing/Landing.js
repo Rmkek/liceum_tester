@@ -17,6 +17,7 @@ class Landing extends Component {
       method: 'POST'
     })
       .then(response => {
+        console.log('resp: ', response)
         if (response.redirected) {
           console.log('Successfully logged in.')
           this.setState({

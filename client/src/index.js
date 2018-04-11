@@ -11,7 +11,6 @@ import Landing from './Pages/Landing/Landing'
 import Login from './Pages/Login/Login'
 import Assignments from './Pages/User/Assignments/Assignments'
 import RegisterUser from './Pages/User/RegisterUser'
-import Assignment from './Pages/User/Assignments/Assignment/Assignment'
 
 import Admin from './Pages/Admin/Admin'
 
@@ -37,14 +36,14 @@ ReactDOM.render(
 
       {/* User routes */}
       <Route exact path='/assignments' render={routeProps => <PageContainer component={<Assignments {...routeProps} />} />} />
-      <Route path='/assignment' render={routeProps => <PageContainer component={<Assignment {...routeProps} />} />} />
+      {/* <Route path='/assignment' render={routeProps => <PageContainer component={<Assignment {...routeProps} />} />} /> */}
 
       {/* Teacher routes */}
       <Route exact path='/teacher' render={routeProps => <TeacherPage component={<Teacher />} />} />
       <Route exact path='/teacher/add-assignments' render={() => <TeacherPage component={<AddAssignments />} />} />
       <Route exact path='/teacher/approve-students' render={() => <TeacherPage component={<ApproveStudents />} />} />
       <Route exact path='/teacher/my-students' render={() => <TeacherPage component={<MyStudents />} />} />
-      <Route exact path='/teacher/categories' render={() => <TeacherPage component={<Categories />} />} />
+      <Route exact path='/teacher/categories' render={() => <TeacherPage component={<Categories isTeacher />} />} />
       <Route path='/teacher/assignments' render={routeProps => <TeacherPage component={<Assignments {...routeProps} />} />} />
 
       {/* Admin routes */}

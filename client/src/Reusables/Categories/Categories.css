@@ -2,14 +2,21 @@
   text-align: center;
   font-family: "Nunito", sans-serif;
   cursor: pointer;
+  
 }
 
 .category__container {
   margin-top: 1em;
   margin-left: -1em;
+  
 }
 
 
 .assignment__body {
   margin-top: 1em;
+  
+}
+
+.assignment_no-hover, .assignment_no-hover:hover, .assignment_no-hover::before, .assignment_no-hover::after {
+  text-decoration: none
 }

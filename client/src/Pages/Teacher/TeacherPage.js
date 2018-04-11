@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import TeacherNavBar from './TeacherNavBar'
 import Spinner from '../../Reusables/Spinner/Spinner'
 import { Redirect } from 'react-router-dom'
-import Footer from '../../Reusables/Footer/Footer'
 
 class TeacherPage extends Component {
   constructor (props) {
@@ -41,7 +40,6 @@ class TeacherPage extends Component {
     return this.state.is_loading ? <Spinner /> : <div>
       <TeacherNavBar />
       {this.props.component}
-      <Footer />
     </div>
   }
 }

@@ -56,7 +56,7 @@ class Login extends Component {
     // eslint-disable-next-line
     let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     if (this.state.email_value === '') return null
-    return !!re.test(this.state.email_value)
+    return re.test(this.state.email_value)
   };
 
   getPasswordValidationState = () => {
