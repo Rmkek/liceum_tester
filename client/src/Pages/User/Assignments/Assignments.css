@@ -34,7 +34,7 @@
   color: black;
   margin-left: 1em;
 }
-
+/* 
 h5::before,
 h5::after {
 	display: inline-block;
@@ -68,7 +68,7 @@ h5:focus::after {
 	-webkit-transform: translateX(0px);
 	-moz-transform: translateX(0px);
 	transform: translateX(0px);
-}
+} */
 
 .assignment__link:first-child {
   margin-left: 0;

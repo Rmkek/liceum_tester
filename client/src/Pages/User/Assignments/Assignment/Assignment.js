@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import ReactDOM from 'react-dom'
 import { Table, Button, FormGroup, Badge, Input, Label } from 'reactstrap'
 import * as CODE_TESTING_CONSTANTS from '../../../../Backend_answers/CodeTestingConstants'
 import './Assignment.css'
@@ -8,8 +9,23 @@ class Assignment extends Component {
     super(props)
 
     this.state = {
-      assignment_badge: 'Not solved.',
-      file: undefined
+      file: undefined,
+      assignment: this.props.assignment
+    }
+  }
+
+  static getDerivedStateFromProps (nextProps, prevState) {
+    console.log('nextprops', nextProps)
+    if (nextProps.assignment === '') {
+      return {
+        file: undefined,
+        assignment: ''
+      }
+    } else {
+      return {
+        file: undefined,
+        assignment: nextProps.assignment
+      }
     }
   }
 
@@ -23,7 +39,9 @@ class Assignment extends Component {
     data.append('codeFile', this.state.file)
     data.append('assignmentPackName', assignmentName)
     data.append('assignmentID', id)
-    this.setState({assignment_badge: <Badge color='info'>Tests running...</Badge>})
+    let property = {...this.state.assignment}
+
+    ReactDOM.render(<Badge color='info'>Tests running...</Badge>, document.getElementById(`tests_status-${id}`).firstChild)
     window.fetch(`/api/upload-code`, {
       Accept: 'application/json',
       method: 'POST',
@@ -33,18 +51,22 @@ class Assignment extends Component {
       .then(resp => resp.json())
       .then(json => {
         if (json.error === 'TESTS_FAILED') {
-          this.setState({assignment_badge: <Badge color='warning'>Tests failed on test {json.on_test}</Badge>})
-          console.log('state changed, ', this.state)
+          ReactDOM.render(<Badge color='warning'>Tests failed on test {json.on_test}</Badge>, document.getElementById(`tests_status-${id}`).firstChild)
         } else {
           switch (json) {
             case CODE_TESTING_CONSTANTS.TESTS_PASSED:
-              this.setState({assignment_badge: <Badge color='success'>Success</Badge>})
+              property.tasks.forEach(e => {
+                if (e.id === id) {
+                  e.solved = true
+                }
+              })
+              this.setState({assignment: property})
               break
             case CODE_TESTING_CONSTANTS.NO_FILES_UPLOADED:
-              this.setState({assignment_badge: <Badge color='warning'>No files were uploaded.</Badge>})
+              ReactDOM.render(<Badge color='warning'>No files were uploaded.</Badge>, document.getElementById(`tests_status-${id}`).firstChild)
               break
             default:
-              this.setState({assignment_badge: <Badge color='danger'>SERVER ERROR</Badge>})
+              ReactDOM.render(<Badge color='warning'>No files were uploaded.</Badge>, document.getElementById(`tests_status-${id}`).firstChild)
               console.log('Default case happened (this is bad probably)')
           }
         }
@@ -56,6 +78,7 @@ class Assignment extends Component {
   }
 
   render () {
+    console.log('state in render: ', this.state)
     return <Table bordered hover>
       <thead>
         <tr>
@@ -66,7 +89,7 @@ class Assignment extends Component {
         </tr>
       </thead>
       <tbody>
-        {this.props.assignment.tasks === undefined ? <tr><td>''</td></tr> : this.props.assignment.tasks.map(element => (
+        {this.state.assignment.tasks === undefined ? <tr><td>''</td></tr> : this.state.assignment.tasks.map(element => (
           <tr key={element.name}>
             <th scope='row'>{element.name}</th>
             {element.solved ? <td><p>Tests passed!</p></td>
@@ -75,7 +98,7 @@ class Assignment extends Component {
                   <FormGroup>
                     <Label for='upload__file-input'>Source code</Label>
                     <Input id='upload__file-input' className='upload__file' type='file' onChange={e => this.handleFileChange(e.target.files)} name='sampleFile' />
-                    <Button className='button--send' id={element.id} onClick={(e) => this.onSendClick(element.id, this.props.assignment.name)}>
+                    <Button className='button--send' id={element.id} onClick={(e) => this.onSendClick(element.id, this.state.assignment.name)}>
                       Submit
                     </Button>
                   </FormGroup>
@@ -83,10 +106,10 @@ class Assignment extends Component {
               </td>
             }
             <td id={`tests_status-${element.id}`}>
-              {element.solved === true ? <Badge color='success'>Solved</Badge> : this.state.assignment_badge}
+              {element.solved === true ? <Badge color='success'>Solved</Badge> : <p>Not solved</p>}
             </td>
             <td>
-              <a href={this.props.assignment.pdfPath} target='_blank' rel='noopener noreferrer'>
+              <a href={this.state.assignment.pdfPath} target='_blank' rel='noopener noreferrer'>
                 Click me!
               </a>
             </td>

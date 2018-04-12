@@ -1,12 +1,18 @@
 import React, { Component } from 'react'
 import { Container, Button, Row, Col } from 'reactstrap'
-import { Link } from 'react-router-dom'
+import { Link, Redirect } from 'react-router-dom'
 import * as AUTH_CONSTANTS from '../../Backend_answers/AuthConstants'
 import './Landing.css'
+import Spinner from '../../Reusables/Spinner/Spinner'
 
 class Landing extends Component {
   constructor (props) {
     super(props)
+    this.state = {
+      is_loading: true,
+      redirect: false,
+      redirect_url: ''
+    }
 
     window.fetch(`api/checkForLogin`, {
       headers: {
@@ -27,6 +33,7 @@ class Landing extends Component {
         } else {
           response.json().then(resp => {
             if (resp === AUTH_CONSTANTS.NOT_LOGGED_IN) {
+              this.setState({is_loading: false})
               console.log('Not logged in')
             }
           })
@@ -35,7 +42,11 @@ class Landing extends Component {
   }
 
   render () {
-    return <Container>
+    if (this.state.redirect) {
+      return <Redirect to={this.state.redirect_url} />
+    }
+
+    return this.state.is_loading ? <Spinner /> : <Container>
       <Row className='vertical-center'>
         <Col xl={{size: 4, offset: 4}} lg={{ size: 4, offset: 4 }} md={{ size: 5, offset: 4 }} sm={{size: 6, offset: 3}} xs={{size: 8, offset: 2}} className='choice-container'>
           <h1 className='center-heading'>Would you rather</h1>

@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { Col, Card, CardTitle, CardBody } from 'reactstrap'
 import Categories from '../../../Reusables/Categories/Categories'
 import './Assignments.css'
+import UserNavBar from '../UserNavBar'
 import { Redirect } from 'react-router-dom'
 
 class Assignments extends Component {
@@ -65,7 +66,10 @@ class Assignments extends Component {
       )
     }
     return (
-      <Categories full_name={this.state.full_name} isTeacher={false} />
+      <div>
+        <UserNavBar />
+        <Categories categories={this.state.categories} full_name={this.state.full_name} isTeacher={false} />
+      </div>
     )
   }
 }

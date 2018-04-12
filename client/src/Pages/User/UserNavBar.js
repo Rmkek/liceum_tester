@@ -1,9 +1,8 @@
 import React, { Component } from 'react'
-import { Navbar, NavbarBrand, Nav, NavItem, NavLink } from 'reactstrap'
+import { Navbar, NavbarBrand, Nav, NavItem } from 'reactstrap'
 import { Redirect } from 'react-router-dom'
-import './TeacherNavBar.css'
 
-class TeacherNavBar extends Component {
+class UserNavBar extends Component {
   constructor () {
     super()
 
@@ -30,20 +29,8 @@ class TeacherNavBar extends Component {
   render () {
     return this.state.redirected ? <Redirect to='/' /> : (
       <Navbar color='faded' light expand='md'>
-        <NavbarBrand href='/teacher'>Liceum Tester Teacher Panel</NavbarBrand>
+        <NavbarBrand href='/assignments'>Liceum Tester User Panel</NavbarBrand>
         <Nav className='ml-auto' navbar>
-          <NavItem>
-            <NavLink href='/teacher'>My Profile</NavLink>
-          </NavItem>
-          <NavItem>
-            <NavLink href='/teacher/my-students'>My Students</NavLink>
-          </NavItem>
-          <NavItem>
-            <NavLink href='/teacher/categories'>My Assignments</NavLink>
-          </NavItem>
-          <NavItem>
-            <NavLink href='/teacher/add-assignments/'>Add Assignments</NavLink>
-          </NavItem>
           <NavItem>
             <i className='fas fa-sign-out-alt logout-button' onClick={this.logout} />
           </NavItem>
@@ -53,4 +40,4 @@ class TeacherNavBar extends Component {
   }
 }
 
-export default TeacherNavBar
+export default UserNavBar

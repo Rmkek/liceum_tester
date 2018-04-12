@@ -3,12 +3,10 @@ import Footer from '../Footer/Footer'
 
 class PageContainer extends Component {
   render () {
-    return (
-      <div>
-        {this.props.component}
-        <Footer />
-      </div>
-    )
+    return <div>
+      {this.props.component}
+      <Footer />
+    </div>
   }
 }
 

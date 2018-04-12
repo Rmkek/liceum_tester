@@ -15,33 +15,18 @@ class Teacher extends Component {
       studentsAmount: 0
     }
 
-    window.fetch(window.location.href, {
+    window.fetch('/api/get-profile-data', {
       credentials: 'include',
       method: 'POST'
     })
-      .then(res => {
-        if (res.redirected) {
-          this.setState({redirected: true, is_loading: false})
-        } else {
-          console.log('in else')
-          window.fetch('/api/get-profile-data', {
-            credentials: 'include',
-            method: 'POST'
-          })
-            .then(res => res.json())
-            .then(json => {
-              this.setState({ is_loading: false,
-                unapprovedUsersAmount: json.unapprovedUsersAmount,
-                assignmentsAmount: json.assignmentsAmount,
-                studentsAmount: json.studentsAmount,
-                full_name: json.full_name})
-              console.log('this.state: ', this.state)
-            })
-            .catch(err => {
-              console.log('err: ', err)
-            })
-        }
-        console.log('in teacherpage response: ', res)
+      .then(res => res.json())
+      .then(json => {
+        this.setState({ is_loading: false,
+          unapprovedUsersAmount: json.unapprovedUsersAmount,
+          assignmentsAmount: json.assignmentsAmount,
+          studentsAmount: json.studentsAmount,
+          full_name: json.full_name})
+        console.log('this.state: ', this.state)
       })
       .catch(err => {
         console.log('err: ', err)

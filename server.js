@@ -1,4 +1,4 @@
-require('isomorphic-fetch') // used by dropbox api
+const fetch = require('isomorphic-fetch') // used by dropbox api
 // server must-haves
 const express = require('express')
 const session = require('express-session')
@@ -23,9 +23,6 @@ const Dropbox = require('dropbox').Dropbox
 const dbx = new Dropbox({
   accessToken: process.env.DROPBOX_ACCESS_TOKEN
 })
-
-// executing user code
-const { execSync } = require('child_process')
 
 // app managemenent
 const opbeat = require('opbeat').start()
@@ -66,11 +63,11 @@ app.use(
     }),
     secret: process.env.SESSION_SECRET_KEY,
     cookie: {
-      maxAge: 10 * 60 * 1000,
-      httpOnly: false
+      maxAge: 30 * 60 * 1000,
+      httpOnly: true
     },
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: false
   })
 )
 app.use(passport.initialize())
@@ -135,10 +132,21 @@ app.use(fileUpload())
 app.use(bodyParser.json())
 
 // Express only serves static assets in production
-// TODO: think about production and serving static files.
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static('client/build'))
 }
+
+setInterval(() => {
+  User
+    .remove({isApproved: false})
+    .exec()
+    .then(removed => {
+      console.log('REMOVED USERS: ', removed)
+    })
+    .catch(err => {
+      console.log('ERROR WHEN REMOVING USERS: ', err)
+    })
+}, 1000 * 60 * 60 * 24) // every 24 hrs clear database
 
 console.log('currentdir: ', __dirname)
 console.log('resolved static path: ', path.resolve(__dirname, './client/build'))
@@ -245,6 +253,7 @@ app.post('/api/assignments', (req, res) => {
   console.log('in /api/assignments, body: ', req.body)
   if (req.user !== undefined) {
     if (req.user.isTeacher) {
+      console.log('user isTeacher')
       AssignmentPacks.find({teacher: req.user.email, category: req.body.category})
         .exec()
         .then(found => {
@@ -266,15 +275,16 @@ app.post('/api/assignments', (req, res) => {
           console.log('Error happened at /api/assignments', err)
         })
     } else {
+      console.log('user is not teacher')
       AssignmentPacks
         .where('category').in(req.user.categories)
         .where('teacher').equals(req.user.teacher)
         .exec()
         .then(found => {
-          console.log('found: ', found)
-          console.log('found.tasks: ', found[0].tasks)
           let answer = []
           let finishedAssignments = []
+
+          // if user has some finished assignments
           if (!(req.user.assignments === [] || req.user.assignments.length === 0)) {
             req.user.assignments.forEach(e => {
               e.finishedAssignments.forEach(assignmentID => {
@@ -283,7 +293,8 @@ app.post('/api/assignments', (req, res) => {
             })
           }
 
-          console.log('finishedAssignm: ', finishedAssignments)
+          console.log('finishedASsignments: ', finishedAssignments)
+
           found.forEach(elem => {
             let tasks = []
 
@@ -319,103 +330,15 @@ app.post('/api/assignments', (req, res) => {
               category: elem.category,
               tasks: tasks
             })
-            // res.status(200)
-            res.json(answer)
           })
-        })
-        .catch(err => {
-          console.log('err at /api/assignment', err)
-          res.status(400)
-          res.json({error: 'SERVER_ERROR'})
+
+          res.status(200)
+          res.json(answer)
         })
     }
   } else {
-    res.status(200)
     res.redirect('/')
   }
-})
-
-app.post('/api/getAssignmentPack', checkLoginMiddleware({}), (req, res, next) => {
-  if (req.body.assignmentPack === undefined) {
-    res.status(400)
-    res.json(ASSIGNMENT_CONSTANTS.NO_SUCH_ASSIGNMENT)
-    next()
-  }
-
-  const assignmentPack = req.body.assignmentPack
-
-  AssignmentPacks.findOne({
-    name: assignmentPack,
-    teacher: req.user.teacher
-  })
-    .exec()
-    .then(found => {
-      console.log('found assignments: ', found)
-
-      if (found === undefined || found === null) {
-        res.status(500)
-        res.json(ASSIGNMENT_CONSTANTS.NO_SUCH_ASSIGNMENT)
-        next()
-      }
-
-      console.log('req.user: ', req.user)
-
-      const userAssignments = req.user.assignments
-
-      let output = {
-        pdfPath: found.pdfPath,
-        tasks: []
-      }
-      // checking that user has atleast some solved assignments
-      if (userAssignments === null || userAssignments === undefined || userAssignments.length === 0) {
-        found.tasks.forEach(task => {
-          output.tasks.push({
-            name: task.name,
-            id: task._id,
-            solved: false
-          })
-        })
-        res.status(200)
-        res.json(output)
-        next()
-      } else {
-        let assignments = null
-
-        // checking that user has current assignment solved
-        for (let i = 0; i < userAssignments.length; i++) {
-          if (userAssignments[i].packName === assignmentPack) {
-            assignments = userAssignments[i]
-          }
-        }
-
-        // user does not solved this assignmentPack yet, returning him all assignments as non-solved.
-        if (assignments === null) {
-          found.tasks.forEach(task => {
-            output.tasks.push({
-              name: task.name,
-              id: task._id,
-              solved: false
-            })
-          })
-
-          res.status(200)
-          res.json(output)
-          next()
-        } else {
-          found.tasks.forEach(task => {
-            output.tasks.push({
-              name: task.name,
-              id: task._id,
-              solved: assignments.finishedAssignments.includes(task._id.toString())
-            })
-          })
-
-          res.status(200)
-          res.json(output)
-          next()
-        }
-      }
-    })
 })
 
 app.post('/api/register', (req, res) => {
@@ -697,17 +620,17 @@ app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
   console.log('req.files', req.files)
   console.log('req.body: ', req.body)
   const file = req.files.codeFile
-  const codeFileName = uuid()
+  // const codeFileName = uuid()
 
-  file.mv(`${CODE_SAVING_DIRECTORY}/${codeFileName}.cpp`, err => {
-    if (err) {
-      console.log('Error happened while saving file: ', err)
+  // file.mv(`${CODE_SAVING_DIRECTORY}/${codeFileName}.cpp`, err => {
+  //   if (err) {
+  //     console.log('Error happened while saving file: ', err)
 
-      res.status(500)
-      res.json(CODE_TESTING_CONSTANTS.SERVER_ERROR)
-      next()
-    }
-  })
+  //     res.status(500)
+  //     res.json(CODE_TESTING_CONSTANTS.SERVER_ERROR)
+  //     next()
+  //   }
+  // })
 
   AssignmentPacks.findOne({
     'tasks._id': assignmentID
@@ -733,78 +656,88 @@ app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
       next()
     }
 
-    let testIterator = 1
-    console.log('task: ', task)
-    let codePassedTests = true
+    const fileData = file.data.toString('utf8')
+    let fetches = []
+
     task.tests.every(test => {
-      try {
-        let output = execSync(
-          `cd ${CODE_SAVING_DIRECTORY} && g++ ${codeFileName}.cpp -o ${codeFileName}.out && ./${codeFileName}.out ${test.input}`,
-          'utf8'
-        ).toString()
-
-        if (output !== test.output) {
-          console.log(`Failed on test #${testIterator}`)
-          codePassedTests = false
-          fs.unlink(`${CODE_SAVING_DIRECTORY}/${codeFileName}.cpp`, err => {
-            if (err) console.log('Error happened when deleting code: ', err)
-            console.log(`${codeFileName}.cpp was deleted`)
-          })
-          fs.unlink(`${CODE_SAVING_DIRECTORY}/${codeFileName}.out`, err => {
-            if (err) console.log('Error happened when deleting binary: ', err)
-            console.log(`${codeFileName}.out was deleted`)
-          })
-
-          res.status(500)
-          CODE_TESTING_CONSTANTS.TESTS_FAILED.on_test = testIterator
-          res.json(CODE_TESTING_CONSTANTS.TESTS_FAILED)
-          return next()
-        }
-
-        testIterator++
-      } catch (e) {
-        console.log('Error happened while executing code.', e)
-        res.status(500)
-        res.json(CODE_TESTING_CONSTANTS.CODE_ERROR)
-      }
-    })
-    if (codePassedTests) {
-      console.log('uploading code, User:', req.user)
-      if (req.user.assignments === undefined || req.user.assignments === null || req.user.assignments.length === 0) {
-        const finishedAssignments = new FinishedAssignmentPack({
-          packName: assignmentPack,
-          finishedAssignments: [assignmentID]
+      let runningTest = fetch('https://wandbox.org/api/compile.json', {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        method: 'POST',
+        body: JSON.stringify({
+          'compiler': 'gcc-head',
+          'code': fileData,
+          'stdin': test.input
         })
-
-        req.user.assignments = [finishedAssignments]
-      } else {
-        for (let i = 0; i < req.user.assignments.length; i++) {
-          if (req.user.assignments[i].packName === assignmentPack) {
-            if (req.user.assignments[i].finishedAssignments.includes(assignmentID)) {
-              res.status(400)
-              res.status(CODE_TESTING_CONSTANTS.TESTS_ALREADY_PASSED)
-              next()
-            } else {
-              req.user.assignments[i].finishedAssignments.push(assignmentID)
-            }
-          }
-          break
-        }
-      }
-      User.findByIdAndUpdate(req.user._id, req.user, {
-        new: true
       })
-        .exec()
-        .then(updatedUser => {
-          res.status(200)
-          res.json(CODE_TESTING_CONSTANTS.TESTS_PASSED)
-        })
-        .catch(err => {
-          console.log('Error at /api/upload-code:', err)
-          res.status(500)
-          res.json(CODE_TESTING_CONSTANTS.SERVER_ERROR)
-        })
-    }
+
+      fetches.push(runningTest)
+    })
+
+    let testIter = 0
+    Promise.all(fetches).then(values => {
+      values.forEach(value => value
+        .json()
+        .then(output => {
+          console.log('output: ', output.program_output)
+          console.log('expected output: ', task.tests[testIter].output)
+          if (output.program_output !== task.tests[testIter].output) {
+            res.status(500)
+            CODE_TESTING_CONSTANTS.TESTS_FAILED.on_test = testIter + 1
+            res.json(CODE_TESTING_CONSTANTS.TESTS_FAILED)
+            return next()
+          }
+          ++testIter
+          // tests have passed and now iter === length
+          if (testIter === task.tests.length) {
+            // if user has no finished assignments
+            if (req.user.assignments === undefined || req.user.assignments === null || req.user.assignments.length === 0) {
+              const finishedAssignments = new FinishedAssignmentPack({
+                packName: assignmentPack,
+                finishedAssignments: [assignmentID]
+              })
+
+              req.user.assignments = [finishedAssignments]
+            } else {
+              for (let i = 0; i < req.user.assignments.length; i++) {
+                // if user already has that assignmentpack
+                if (req.user.assignments[i].packName === assignmentPack) {
+                  // task has been solved already
+                  if (req.user.assignments[i].finishedAssignments.includes(assignmentID)) {
+                    res.status(400)
+                    res.status(CODE_TESTING_CONSTANTS.TESTS_ALREADY_PASSED)
+                    next()
+                  } else {
+                    req.user.assignments[i].finishedAssignments.push(assignmentID)
+                  }
+                } else {
+                  const finishedAssignments = new FinishedAssignmentPack({
+                    packName: assignmentPack,
+                    finishedAssignments: [assignmentID]
+                  })
+
+                  req.user.assignments.push(finishedAssignments)
+                }
+                break
+              }
+            }
+            User.findByIdAndUpdate(req.user._id, req.user, {
+              new: true
+            })
+              .exec()
+              .then(updatedUser => {
+                res.status(200)
+                res.json(CODE_TESTING_CONSTANTS.TESTS_PASSED)
+              })
+              .catch(err => {
+                console.log('Error at /api/upload-code:', err)
+                res.status(500)
+                res.json(CODE_TESTING_CONSTANTS.SERVER_ERROR)
+              })
+          }
+        }))
+    })
   })
 })
 
@@ -832,6 +765,13 @@ app.post('/api/getTeachersList', (req, res) => {
         SERVER_ERROR: 'SERVER_ERROR'
       })
     })
+})
+
+app.post('/api/logout', (req, res) => {
+  console.log('User logged out.')
+  req.session.destroy(() =>
+    res.redirect('/')
+  )
 })
 
 app.post('/api/checkForLogin', (req, res) => {
@@ -919,9 +859,9 @@ app.post('/api/get-teacher-students', checkLoginMiddleware({user: 'TEACHER'}), (
     })
 })
 
+// add feature for saving the ids and thus not breaking the heck of ur users
 app.post('/api/teacher-update-assignment', checkLoginMiddleware({user: 'TEACHER'}), (req, res) => {
   console.log('updating assignment...: ', req.body)
-  let databaseObject = {}
   let assignmentName = req.body.assignmentName
   let name = req.body.assignmentPackName
   let category = req.body.category
@@ -977,46 +917,30 @@ app.post('/api/teacher-update-assignment', checkLoginMiddleware({user: 'TEACHER'
             console.log('category: ', category)
             console.log('tasks: ', tasksArray)
 
-            databaseObject['pdfPath'] = pdfFileURL
-
-            if (category !== undefined) {
-              databaseObject['category'] = category
-            }
-
-            if (name !== undefined) {
-              databaseObject['name'] = name
-            }
-
-            if (tasks !== undefined) {
-              databaseObject['tasks'] = tasksArray
-            }
-
-            console.log('dbobject: ', databaseObject)
-            AssignmentPacks.findOneAndUpdate({
+            AssignmentPacks.findOne({
               teacher: req.user.email,
-              name: assignmentName},
-            {$set: databaseObject}
-            )
+              name: assignmentName
+            })
               .exec()
-              .then(response => {
-                console.log('got response after updating db object: ', response)
-                res.status(200)
-              })
-              .catch(err => {
-                console.log('err at /api/teacher-update-assignment', err)
-                res.status(500)
+              .then(assignmentPack => {
+                console.log('!!!found assignmentPack: ', assignmentPack)
+                assignmentPack['pdfPath'] = pdfFileURL
+                if (name !== undefined) {
+                  assignmentPack['name'] = name
+                }
+                if (category !== undefined) {
+                  assignmentPack['category'] = category
+                }
+
+                if (tasksArray !== undefined && tasksArray !== []) {
+                  assignmentPack['tasks'] = tasksArray
+                }
+                assignmentPack.save(updatedPack => {
+                  res.status(200)
+                  res.json({success: true})
+                })
               })
           })
-          .catch(err => {
-            res.status(400)
-            res.json(ASSIGNMENT_CONSTANTS.ASSIGNMENT_NOT_ADDED)
-            console.log('Exception happened when sharing assignment: ', err)
-          })
-      })
-      .catch(err => {
-        res.status(400)
-        res.json(ASSIGNMENT_CONSTANTS.ASSIGNMENT_NOT_ADDED)
-        console.log('Exception happened when uploading assignment to dropbox: ', err)
       })
   } else {
     let arrLength = tasks instanceof Array ? tasks.length : 1
@@ -1048,32 +972,27 @@ app.post('/api/teacher-update-assignment', checkLoginMiddleware({user: 'TEACHER'
     console.log('category: ', category)
     console.log('tasks: ', tasksArray)
 
-    if (category !== undefined) {
-      databaseObject['category'] = category
-    }
-
-    if (name !== undefined) {
-      databaseObject['name'] = name
-    }
-
-    if (tasks !== undefined) {
-      databaseObject['tasks'] = tasksArray
-    }
-
-    console.log('dbobject: ', databaseObject)
-    AssignmentPacks.findOneAndUpdate({
+    AssignmentPacks.findOne({
       teacher: req.user.email,
-      name: assignmentName},
-    {$set: databaseObject}
-    )
+      name: assignmentName
+    })
       .exec()
-      .then(response => {
-        console.log('got response after updating db object: ', response)
-        res.status(200)
-      })
-      .catch(err => {
-        console.log('err at /api/teacher-update-assignment', err)
-        res.status(500)
+      .then(assignmentPack => {
+        console.log('!!!found assignmentPack: ', assignmentPack)
+        if (name !== undefined) {
+          assignmentPack['name'] = name
+        }
+        if (category !== undefined) {
+          assignmentPack['category'] = category
+        }
+
+        if (tasksArray !== undefined && tasksArray !== []) {
+          assignmentPack['tasks'] = tasksArray
+        }
+        assignmentPack.save(updatedPack => {
+          res.status(200)
+          res.json({success: true})
+        })
       })
   }
 })
