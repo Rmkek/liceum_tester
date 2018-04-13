@@ -80,40 +80,56 @@ class MyStudents extends Component {
   handleChange = (value, email) => {
     console.log('value: ', value)
     console.log('email: ', email)
-
     let newState = []
     for (let i = 0; i < this.state.students.length; i++) {
       if (this.state.students[i].email === email) {
-        if (value.length === 0) {
-          this.updateCategories([], email)
-          newState.push({full_name: this.state.students[i].full_name, email: this.state.students[i].email, categories: []})
-        } else {
-          let foundStudentCategories = this.state.students[i].categories
-          if (foundStudentCategories.includes(value[0])) { // if value is already in the array then we should delete it
-            foundStudentCategories.splice(foundStudentCategories.indexOf(value[0], 1))
-            let fetchCategories = []
-            for (let i = 0; i < foundStudentCategories.length; i++) {
-              fetchCategories.push(foundStudentCategories[i].value)
-            }
-            this.updateCategories(fetchCategories, email)
-            newState.push({ full_name: this.state.students[i].full_name, email: this.state.students[i].email, categories: foundStudentCategories })
-          } else { // if value is not in array then we add it
-            foundStudentCategories.push(value[0])
-            let fetchCategories = []
-            for (let i = 0; i < foundStudentCategories.length; i++) {
-              fetchCategories.push(foundStudentCategories[i].value)
-            }
-            this.updateCategories(fetchCategories, email)
-            newState.push({ full_name: this.state.students[i].full_name, email: this.state.students[i].email, categories: foundStudentCategories })
-          }
-        }
+        let simplifiedCategories = value.map(e => e.value)
+        newState.push({full_name: this.state.students[i].full_name, email: this.state.students[i].email, categories: simplifiedCategories})
+        this.updateCategories(simplifiedCategories, email)
       } else {
         newState.push(this.state.students[i])
       }
     }
 
     this.setState({students: newState})
-    console.log('state after changing: ', this.state)
+    // for (let i = 0; i < this.state.students.length; i++) {
+    //   if (this.state.students[i].email === email) {
+    //     if (value.length === 0) {
+    //       // this.updateCategories([], email)
+    //       newState.push({full_name: this.state.students[i].full_name, email: this.state.students[i].email, categories: []})
+    //     } else {
+    //       let foundStudentCategories = this.state.students[i].categories
+    //       console.log('found students categories: ', foundStudentCategories)
+    //       if (foundStudentCategories.includes(value[value.length - 1])) { // if value is already in the array then we should delete it
+    //         foundStudentCategories.splice(foundStudentCategories.indexOf(value[value.length - 1], 1))
+    //         let fetchCategories = []
+    //         for (let i = 0; i < foundStudentCategories.length; i++) {
+    //           fetchCategories.push(foundStudentCategories[i].value)
+    //         }
+    //         // this.updateCategories(fetchCategories, email)
+    //         newState.push({ full_name: this.state.students[i].full_name, email: this.state.students[i].email, categories: foundStudentCategories })
+    //       } else { // if value is not in array then we add it
+    //         console.log('pushing value[0]: ', value[value.length - 1])
+    //         foundStudentCategories.push(value[value.length - 1].value)
+    //         let fetchCategories = []
+    //         console.log('foundStudentCategories: ', foundStudentCategories)
+    //         for (let i = 0; i < foundStudentCategories.length; i++) {
+    //           fetchCategories.push(foundStudentCategories[i].value)
+    //         }
+    //         // this.updateCategories(fetchCategories, email)
+    //         newState.push({ full_name: this.state.students[i].full_name, email: this.state.students[i].email, categories: foundStudentCategories })
+    //       }
+    //     }
+    //   } else {
+    //     newState.push(this.state.students[i])
+    //   }
+  }
+
+  // this.setState({students: newState})
+  // console.log('state after changing: ', this.state)
+
+  testChange = (val) => {
+    console.log('testchange :', val)
   }
 
   intersection = (array1, array2) => {
@@ -152,7 +168,7 @@ class MyStudents extends Component {
 
   // table should take full page.
   render () {
-    return this.state.is_loading ? <Spinner />
+    return this.state.is_loading || this.state.options === undefined || this.state.options.length === 0 ? <Spinner />
       : <Row>
         <Col xs='12'>
           <Container className='students__container'>
@@ -179,6 +195,7 @@ class MyStudents extends Component {
                               multi
                               placeholder='Select a few...'
                               value={e.categories}
+                              // onChange={(val) => this.handleChange(val, e.email)}
                               onChange={(value) => this.handleChange(value, e.email)}
                               options={this.state.options}
                             />

@@ -45,6 +45,7 @@ const AssignmentTaskModel = mongoose.model('AssignmentTask', AssignmentTaskSchem
 
 mongoose.connect(process.env.MONGODB_URI)
 
+// remove me
 const CODE_SAVING_DIRECTORY = path.resolve(__dirname, './testing_folder')
 console.log('Resolved code saving directory: ', CODE_SAVING_DIRECTORY)
 

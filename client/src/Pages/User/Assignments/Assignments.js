@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { Col, Card, CardTitle, CardBody } from 'reactstrap'
 import Categories from '../../../Reusables/Categories/Categories'
 import './Assignments.css'
 import UserNavBar from '../UserNavBar'
@@ -40,19 +39,6 @@ class Assignments extends Component {
         })
       }
     })
-  }
-
-  renderCategory = (elem) => {
-    this.setState({ keyIter: ++this.state.keyIter })
-    return (
-      <Col xs={2} key={this.state.keyIter} className='category__container'>
-        <Card >
-          <CardBody className='category__body'>
-            <CardTitle>{elem.name}</CardTitle>
-          </CardBody>
-        </Card>
-      </Col>
-    )
   }
 
   render () {

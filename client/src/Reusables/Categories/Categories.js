@@ -114,13 +114,22 @@ class Categories extends Component {
     }).then(response => response.json())
       .then(json => {
         let renderedAssignments = []
+
         json.forEach(assignment => {
-          renderedAssignments.push(this.renderAssignment(assignment))
+          if (assignment.category === category) {
+            renderedAssignments.push(this.renderAssignment(assignment))
+          }
         })
-        this.setState({
-          categoryCollapse: !this.state.categoryCollapse,
-          assignments: renderedAssignments,
-          pack_category_value: category})
+        console.log('this.state before if', this.state)
+        if (this.state.categoryCollapse) {
+          this.setState({assignments: renderedAssignments, pack_category_value: category, assignmentCollapse: !this.state.assignmentCollapse})
+        } else {
+          this.setState({categoryCollapse: !this.state.categoryCollapse, assignments: renderedAssignments, pack_category_value: category})
+        }
+        // this.setState({
+        //   categoryCollapse: !this.state.categoryCollapse,
+        //   assignments: renderedAssignments,
+        //   pack_category_value: category})
 
         console.log('got assignments: ', json)
       })
