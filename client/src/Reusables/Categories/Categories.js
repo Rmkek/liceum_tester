@@ -88,9 +88,11 @@ class Categories extends Component {
         .then(resp => {
           console.log('resp /api/assignments: ', resp)
           let categoryArray = []
+
           this.props.categories.forEach(element => {
             categoryArray.push(this.renderCategory(element))
           })
+
           this.setState({
             categories: categoryArray,
             full_name: this.props.full_name,
@@ -189,7 +191,7 @@ class Categories extends Component {
         />
       )
     }
-    console.log('my state before rendering assignmentChanger: ', this.state)
+    console.log('my state before rendering categories.js: ', this.state)
 
     return (
       this.state.is_loading ? <Spinner />
@@ -211,7 +213,7 @@ class Categories extends Component {
                         options={this.state.options}
                         tasksArray={this.state.current_assignment.tasks}
                         pdfPath={this.state.current_assignment.pdfPath} />
-                      : <Assignment assignment={this.state.current_assignment} />
+                      : this.state.current_assignment !== '' ? <Assignment assignment={this.state.current_assignment} /> : 'Wait...'
                     }
                   </Collapse>
                 </CardBody>

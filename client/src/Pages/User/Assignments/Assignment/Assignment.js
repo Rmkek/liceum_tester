@@ -14,20 +14,20 @@ class Assignment extends Component {
     }
   }
 
-  static getDerivedStateFromProps (nextProps, prevState) {
-    console.log('nextprops', nextProps)
-    if (nextProps.assignment === '') {
-      return {
-        file: undefined,
-        assignment: ''
-      }
-    } else {
-      return {
-        file: undefined,
-        assignment: nextProps.assignment
-      }
-    }
-  }
+  // static getDerivedStateFromProps (nextProps, prevState) {
+  //   console.log('nextprops', nextProps)
+  //   if (nextProps.assignment === '') {
+  //     return {
+  //       file: undefined,
+  //       assignment: ''
+  //     }
+  //   } else {
+  //     return {
+  //       file: undefined,
+  //       assignment: nextProps.assignment
+  //     }
+  //   }
+  // }
 
   onSendClick = (id, assignmentName) => {
     if (this.state.file === undefined) {
@@ -89,7 +89,7 @@ class Assignment extends Component {
         </tr>
       </thead>
       <tbody>
-        {this.state.assignment.tasks === undefined ? <tr><td>''</td></tr> : this.state.assignment.tasks.map(element => (
+        {this.state.assignment.tasks === undefined ? <tr><td>None</td></tr> : this.state.assignment.tasks.map(element => (
           <tr key={element.name}>
             <th scope='row'>{element.name}</th>
             {element.solved ? <td><p>Tests passed!</p></td>
