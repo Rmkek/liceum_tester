@@ -666,6 +666,60 @@ app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
     })
 
     let testIter = 0
+    let iterationFinished = (testIter) => {
+      // tests have passed and now iter === length
+      console.log('heroku wtf, testIter === task.tests.length', testIter === task.tests.length)
+      console.log(task.tests)
+      if (testIter === task.tests.length) {
+        // if user has no finished assignments
+        if (req.user.assignments === undefined || req.user.assignments === null || req.user.assignments.length === 0) {
+          const finishedAssignments = new FinishedAssignmentPack({
+            packName: assignmentPack,
+            finishedAssignments: [assignmentID]
+          })
+          console.log('user had no finished assignments.')
+          console.log('finished assignments now: ', [finishedAssignments])
+
+          req.user.assignments = [finishedAssignments]
+        } else {
+          for (let i = 0; i < req.user.assignments.length; i++) {
+            // if user already has that assignmentpack
+            if (req.user.assignments[i].packName === assignmentPack) {
+              // task has been solved already
+              if (req.user.assignments[i].finishedAssignments.includes(assignmentID)) {
+                res.status(400)
+                res.status(CODE_TESTING_CONSTANTS.TESTS_ALREADY_PASSED)
+                next()
+              } else {
+                req.user.assignments[i].finishedAssignments.push(assignmentID)
+              }
+            } else {
+              const finishedAssignments = new FinishedAssignmentPack({
+                packName: assignmentPack,
+                finishedAssignments: [assignmentID]
+              })
+
+              req.user.assignments.push(finishedAssignments)
+            }
+            break
+          }
+        }
+        User.findByIdAndUpdate(req.user._id, req.user, {
+          new: true
+        })
+          .exec()
+          .then(updatedUser => {
+            res.status(200)
+            res.json(CODE_TESTING_CONSTANTS.TESTS_PASSED)
+          })
+          .catch(err => {
+            console.log('Error at /api/upload-code:', err)
+            res.status(500)
+            res.json(CODE_TESTING_CONSTANTS.SERVER_ERROR)
+          })
+      }
+    }
+
     Promise.all(fetches).then(values => {
       values.forEach(value => value
         .json()
@@ -679,62 +733,11 @@ app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
             res.json(CODE_TESTING_CONSTANTS.TESTS_FAILED)
             return next()
           }
+          iterationFinished(testIter)
 
           ++testIter
         }))
     })
-
-    // tests have passed and now iter === length
-    console.log('heroku wtf, testIter === task.tests.length', testIter === task.tests.length)
-    console.log(task.tests)
-    if (testIter === task.tests.length) {
-      // if user has no finished assignments
-      if (req.user.assignments === undefined || req.user.assignments === null || req.user.assignments.length === 0) {
-        const finishedAssignments = new FinishedAssignmentPack({
-          packName: assignmentPack,
-          finishedAssignments: [assignmentID]
-        })
-        console.log('user had no finished assignments.')
-        console.log('finished assignments now: ', [finishedAssignments])
-
-        req.user.assignments = [finishedAssignments]
-      } else {
-        for (let i = 0; i < req.user.assignments.length; i++) {
-          // if user already has that assignmentpack
-          if (req.user.assignments[i].packName === assignmentPack) {
-            // task has been solved already
-            if (req.user.assignments[i].finishedAssignments.includes(assignmentID)) {
-              res.status(400)
-              res.status(CODE_TESTING_CONSTANTS.TESTS_ALREADY_PASSED)
-              next()
-            } else {
-              req.user.assignments[i].finishedAssignments.push(assignmentID)
-            }
-          } else {
-            const finishedAssignments = new FinishedAssignmentPack({
-              packName: assignmentPack,
-              finishedAssignments: [assignmentID]
-            })
-
-            req.user.assignments.push(finishedAssignments)
-          }
-          break
-        }
-      }
-      User.findByIdAndUpdate(req.user._id, req.user, {
-        new: true
-      })
-        .exec()
-        .then(updatedUser => {
-          res.status(200)
-          res.json(CODE_TESTING_CONSTANTS.TESTS_PASSED)
-        })
-        .catch(err => {
-          console.log('Error at /api/upload-code:', err)
-          res.status(500)
-          res.json(CODE_TESTING_CONSTANTS.SERVER_ERROR)
-        })
-    }
   })
 })
 
