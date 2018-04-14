@@ -733,11 +733,10 @@ app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
             res.json(CODE_TESTING_CONSTANTS.TESTS_FAILED)
             return next()
           }
-          iterationFinished(testIter)
 
           ++testIter
         }))
-    })
+    }).then(iterationFinished(testIter))
   })
 })
 
