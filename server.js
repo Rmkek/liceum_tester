@@ -726,7 +726,7 @@ app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
         .then(output => {
           console.log('output: ', output.program_output)
           console.log('expected output: ', task.tests[testIter].output)
-
+          console.log('output === expected: ', output.program_output === task.tests[testIter].output)
           if (output.program_output !== task.tests[testIter].output) {
             res.status(500)
             CODE_TESTING_CONSTANTS.TESTS_FAILED.on_test = testIter + 1
@@ -735,8 +735,8 @@ app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
           }
 
           ++testIter
-        }))
-    }).then(iterationFinished(testIter))
+        })).then(iterationFinished(testIter))
+    })
   })
 })
 
