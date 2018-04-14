@@ -682,6 +682,8 @@ app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
 
           ++testIter
           // tests have passed and now iter === length
+          console.log('heroku wtf, testIter === task.tests.length', testIter === task.tests.length)
+          console.log(task.tests)
           if (testIter === task.tests.length) {
             // if user has no finished assignments
             if (req.user.assignments === undefined || req.user.assignments === null || req.user.assignments.length === 0) {
