@@ -648,6 +648,7 @@ app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
 
     const fileData = file.data.toString('utf8')
     let fetches = []
+    let testIter = 0
 
     task.tests.every(test => {
       let runningTest = fetch('https://wandbox.org/api/compile.json', {
@@ -665,11 +666,10 @@ app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
       fetches.push(runningTest)
     })
 
-    let testIter = 0
-    let iterationFinished = (testIter) => {
-      // tests have passed and now iter === length
-      console.log('heroku wtf, testIter === task.tests.length', testIter === task.tests.length)
-      console.log(task.tests)
+    let callBackTests = () => {
+      ++testIter
+      console.log('in cbTests, testIter: ', testIter)
+
       if (testIter === task.tests.length) {
         // if user has no finished assignments
         if (req.user.assignments === undefined || req.user.assignments === null || req.user.assignments.length === 0) {
@@ -727,15 +727,16 @@ app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
           console.log('output: ', output.program_output)
           console.log('expected output: ', task.tests[testIter].output)
           console.log('output === expected: ', output.program_output === task.tests[testIter].output)
+
           if (output.program_output !== task.tests[testIter].output) {
             res.status(500)
             CODE_TESTING_CONSTANTS.TESTS_FAILED.on_test = testIter + 1
             res.json(CODE_TESTING_CONSTANTS.TESTS_FAILED)
             return next()
+          } else {
+            callBackTests()
           }
-
-          ++testIter
-        })).then(iterationFinished(testIter))
+        }))
     })
   })
 })
