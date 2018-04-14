@@ -10,15 +10,38 @@ class AssignmentChanger extends Component {
     super(props)
     console.log('Props in AssignmentChanger: ', props)
     this.state = {
-      assignmentsAmount: 1,
-      testsAmount: 1,
-      value: props.pack_category_value,
-      options: props.options,
+      assignmentsAmount: 0,
+      testsAmount: 0,
+      value: this.props.categoryValue,
+      options: this.props.options,
       is_loading: false,
-      pack_name: props.name
+      pack_name: this.props.name
     }
     console.log('state after creation: ', this.state)
   }
+
+  // static getDerivedStateFromProps (nextProps, prevState) {
+  //   console.log('nextprops', nextProps)
+  //   return {
+  //     assignmentsAmount: 1,
+  //     testsAmount: 1,
+  //     value: this.props.pack_category_value,
+  //     options: this.props.options,
+  //     is_loading: false,
+  //     pack_name: this.props.name
+  //   }
+  //   // if (nextProps.assignment === '') {
+  //   //   return {
+  //   //     file: undefined,
+  //   //     assignment: ''
+  //   //   }
+  //   // } else {
+  //   //   return {
+  //   //     file: undefined,
+  //   //     assignment: nextProps.assignment
+  //   //   }
+  //   // }
+  // }
 
   sendHandler = (e) => {
     e.preventDefault()
@@ -102,24 +125,26 @@ class AssignmentChanger extends Component {
                           <Input name='assignmentNames' placeholder='Example: Task' defaultValue={each.name} />
                         </Col>
                       </FormGroup>
-                      {each.tests.map(test => {
-                        return (<Col key={test._id} sm={3} className='test__container test_margin'>
-                          <Label for='test_input_1-1'>Input</Label>
-                          <Col>
-                            <Input type='textarea' name='test_input_1-1' defaultValue={test.input} />
-                          </Col>
-                          <Label for='test_output_1-1'>Output</Label>
-                          <Col>
-                            <Input type='textarea' name='test_output_1-1' defaultValue={test.output} />
-                          </Col>
-                          {/* <Col>
+                      <Row>
+                        {each.tests.map(test => {
+                          return (<Col key={test._id} sm={3} className='test__container test_margin'>
+                            <Label for={`input-${test._id}`}>Input</Label>
+                            <Col>
+                              <Input type='textarea' name={`input-${test._id}`} defaultValue={test.input} />
+                            </Col>
+                            <Label for={`output-${test._id}`}>Output</Label>
+                            <Col>
+                              <Input type='textarea' name={`output-${test._id}`} defaultValue={test.output} />
+                            </Col>
+                            {/* <Col>
                           <Button className='add-test__button' onClick={e => this.renderTest(e)}>
                                   Add test
                           </Button>
                         </Col> */}
-                        </Col>
-                        )
-                      })}
+                          </Col>
+                          )
+                        })}
+                      </Row>
                     </Col>
                   )
                 })

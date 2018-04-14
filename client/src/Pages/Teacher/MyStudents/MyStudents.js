@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Table, Row, Col, Container } from 'reactstrap'
+import { Table, Row, Col, Container, Alert } from 'reactstrap'
 import Select from 'react-select'
 import 'react-select/dist/react-select.css'
 import Spinner from '../../../Reusables/Spinner/Spinner'
@@ -31,27 +31,32 @@ class MyStudents extends Component {
       .then(response => response.json())
       .then(resp => {
         console.log('students: ', resp)
-        this.setState({ students: resp })
+        if (resp.length === 0) {
+          this.setState({has_no_categories: true, is_loading: false})
+        } else {
+          this.setState({ students: resp })
 
-        window.fetch('/api/get-teacher-categories', {
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include',
-          method: 'POST'
-        })
-          .then(response => response.json())
-          .then(resp => {
-            console.log('categories: ', resp)
-            if (resp.categories.length === 0) {
-              this.setState({has_no_categories: true, is_loading: false})
-            } else {
-              this.setState({ options: resp.categories,
-                is_loading: false })
+          window.fetch('/api/get-teacher-categories', {
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            method: 'POST'
+          })
+            .then(response => response.json())
+            .then(resp => {
+              console.log('MyStudents.js, categories: ', resp)
+              if (resp.categories.length === 0) {
+                this.setState({has_no_categories: true, is_loading: false})
+                console.log('curstate: ', this.state)
+              } else {
+                this.setState({ options: resp.categories,
+                  is_loading: false })
+              }
             }
-          }
-          )
+            )
+        }
       })
 
     this.removeStudent = this.removeStudent.bind(this)
@@ -92,50 +97,6 @@ class MyStudents extends Component {
     }
 
     this.setState({students: newState})
-    // for (let i = 0; i < this.state.students.length; i++) {
-    //   if (this.state.students[i].email === email) {
-    //     if (value.length === 0) {
-    //       // this.updateCategories([], email)
-    //       newState.push({full_name: this.state.students[i].full_name, email: this.state.students[i].email, categories: []})
-    //     } else {
-    //       let foundStudentCategories = this.state.students[i].categories
-    //       console.log('found students categories: ', foundStudentCategories)
-    //       if (foundStudentCategories.includes(value[value.length - 1])) { // if value is already in the array then we should delete it
-    //         foundStudentCategories.splice(foundStudentCategories.indexOf(value[value.length - 1], 1))
-    //         let fetchCategories = []
-    //         for (let i = 0; i < foundStudentCategories.length; i++) {
-    //           fetchCategories.push(foundStudentCategories[i].value)
-    //         }
-    //         // this.updateCategories(fetchCategories, email)
-    //         newState.push({ full_name: this.state.students[i].full_name, email: this.state.students[i].email, categories: foundStudentCategories })
-    //       } else { // if value is not in array then we add it
-    //         console.log('pushing value[0]: ', value[value.length - 1])
-    //         foundStudentCategories.push(value[value.length - 1].value)
-    //         let fetchCategories = []
-    //         console.log('foundStudentCategories: ', foundStudentCategories)
-    //         for (let i = 0; i < foundStudentCategories.length; i++) {
-    //           fetchCategories.push(foundStudentCategories[i].value)
-    //         }
-    //         // this.updateCategories(fetchCategories, email)
-    //         newState.push({ full_name: this.state.students[i].full_name, email: this.state.students[i].email, categories: foundStudentCategories })
-    //       }
-    //     }
-    //   } else {
-    //     newState.push(this.state.students[i])
-    //   }
-  }
-
-  // this.setState({students: newState})
-  // console.log('state after changing: ', this.state)
-
-  testChange = (val) => {
-    console.log('testchange :', val)
-  }
-
-  intersection = (array1, array2) => {
-    return array1.filter((each) => {
-      return array2.indexOf(each) !== -1
-    })
   }
 
   removeStudent = (event) => {
@@ -168,7 +129,7 @@ class MyStudents extends Component {
 
   // table should take full page.
   render () {
-    return this.state.is_loading || this.state.options === undefined || this.state.options.length === 0 ? <Spinner />
+    return this.state.is_loading ? <Spinner />
       : <Row>
         <Col xs='12'>
           <Container className='students__container'>
@@ -182,15 +143,15 @@ class MyStudents extends Component {
               </thead>
               <tbody>
                 {
-                  this.state.students.map(e => {
-                    ++studentsIter
-                    return (
-                      <tr key={studentsIter} name={`categories-${e.email}`} ref={`categories-${e.email}`}>
-                        <td>{e.full_name}</td>
-                        <td>{e.email}</td>
-                        <td>
-                          {this.state.has_no_categories ? 'No assignments added. Try adding some assignments.'
-                            : <Select
+                  this.state.has_no_categories ? <tr><td colSpan={3}><Alert color='danger'>No students approved. Try approving some students first.</Alert></td></tr>
+                    : this.state.students.map(e => {
+                      ++studentsIter
+                      return (
+                        <tr key={studentsIter} name={`categories-${e.email}`} ref={`categories-${e.email}`}>
+                          <td>{e.full_name}</td>
+                          <td>{e.email}</td>
+                          <td>
+                            <Select
                               name={`categories-${e.email}`}
                               multi
                               placeholder='Select a few...'
@@ -199,11 +160,11 @@ class MyStudents extends Component {
                               onChange={(value) => this.handleChange(value, e.email)}
                               options={this.state.options}
                             />
-                          }
-                        </td>
-                      </tr>
-                    )
-                  })
+                          </td>
+
+                        </tr>
+                      )
+                    })
                 }
               </tbody>
             </Table>

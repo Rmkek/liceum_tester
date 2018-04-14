@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Col, Container, Card, CardTitle, CardGroup, CardBody, Collapse, Row } from 'reactstrap'
+import { Col, Container, Card, CardTitle, CardGroup, CardBody, Collapse, Row, Alert } from 'reactstrap'
 import './Categories.css'
 import { Redirect } from 'react-router-dom'
 import Assignment from '../../Pages/User/Assignments/Assignment/Assignment'
@@ -116,6 +116,8 @@ class Categories extends Component {
         let renderedAssignments = []
 
         json.forEach(assignment => {
+          console.log('assignment: ', assignment)
+          console.log('category: ', category)
           if (assignment.category === category) {
             renderedAssignments.push(this.renderAssignment(assignment))
           }
@@ -130,7 +132,7 @@ class Categories extends Component {
         //   categoryCollapse: !this.state.categoryCollapse,
         //   assignments: renderedAssignments,
         //   pack_category_value: category})
-
+        console.log('state after changes: ', this.state)
         console.log('got assignments: ', json)
       })
   }
@@ -187,13 +189,15 @@ class Categories extends Component {
         />
       )
     }
+    console.log('my state before rendering assignmentChanger: ', this.state)
+
     return (
       this.state.is_loading ? <Spinner />
         : <Col xs={12}>
           <Container className='assignment-container'>
             <h1 className='alert-heading alert__h1'>Your categories</h1>
             <small className='alert-heading logged_in'>Logged in as {this.state.full_name}</small>
-            <CardGroup className='assignment-link'>{this.state.categories}</CardGroup>
+            <CardGroup className='assignment-link'>{this.state.categories.length === 0 ? <Alert color='danger'>No assignments added. Try adding some assignments first.</Alert> : this.state.categories}</CardGroup>
             <Collapse isOpen={this.state.categoryCollapse}>
               <Card className='assignment__body'>
                 <CardBody className='pack__container'>
