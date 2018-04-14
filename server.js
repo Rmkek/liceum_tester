@@ -672,12 +672,14 @@ app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
         .then(output => {
           console.log('output: ', output.program_output)
           console.log('expected output: ', task.tests[testIter].output)
+
           if (output.program_output !== task.tests[testIter].output) {
             res.status(500)
             CODE_TESTING_CONSTANTS.TESTS_FAILED.on_test = testIter + 1
             res.json(CODE_TESTING_CONSTANTS.TESTS_FAILED)
             return next()
           }
+
           ++testIter
           // tests have passed and now iter === length
           if (testIter === task.tests.length) {
@@ -687,6 +689,8 @@ app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
                 packName: assignmentPack,
                 finishedAssignments: [assignmentID]
               })
+              console.log('user had no finished assignments.')
+              console.log('finished assignments now: ', [finishedAssignments])
 
               req.user.assignments = [finishedAssignments]
             } else {
