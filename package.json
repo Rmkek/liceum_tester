@@ -18,14 +18,11 @@
     "express-session": "^1.15.6",
     "graceful-fs": "^4.1.11",
     "isomorphic-fetch": "^2.2.1",
-    "jquery": "^3.0.0",
     "mongodb": "^3.0.4",
     "mongoose": "^5.0.9",
     "opbeat": "^4.17.0",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
-    "secure-random": "^1.1.1",
-    "sha1": "^1.1.1",
     "uuid": "^3.2.1"
   },
   "scripts": {

@@ -17,7 +17,8 @@ class MyStudents extends Component {
       students: '',
       value: undefined,
       options: [],
-      has_no_categories: false
+      has_no_categories: false,
+      has_no_users: false
     }
 
     window.fetch(`/api/get-teacher-students`, {
@@ -32,7 +33,7 @@ class MyStudents extends Component {
       .then(resp => {
         console.log('students: ', resp)
         if (resp.length === 0) {
-          this.setState({has_no_categories: true, is_loading: false})
+          this.setState({has_no_users: true, is_loading: false})
         } else {
           this.setState({ students: resp })
 
@@ -143,28 +144,30 @@ class MyStudents extends Component {
               </thead>
               <tbody>
                 {
-                  this.state.has_no_categories ? <tr><td colSpan={3}><Alert color='danger'>No students approved. Try approving some students first.</Alert></td></tr>
-                    : this.state.students.map(e => {
-                      ++studentsIter
-                      return (
-                        <tr key={studentsIter} name={`categories-${e.email}`} ref={`categories-${e.email}`}>
-                          <td>{e.full_name}</td>
-                          <td>{e.email}</td>
-                          <td>
-                            <Select
-                              name={`categories-${e.email}`}
-                              multi
-                              placeholder='Select a few...'
-                              value={e.categories}
-                              // onChange={(val) => this.handleChange(val, e.email)}
-                              onChange={(value) => this.handleChange(value, e.email)}
-                              options={this.state.options}
-                            />
-                          </td>
+                  this.state.has_no_categories
+                    ? <tr><td colSpan={3}><Alert color='danger'>No categories added. Upload some assignments first.</Alert></td></tr>
+                    : this.state.has_no_users ? <tr><td colSpan={3}><Alert color='danger'>No students approved. Try approving some students first.</Alert></td></tr>
+                      : this.state.students.map(e => {
+                        ++studentsIter
+                        return (
+                          <tr key={studentsIter} name={`categories-${e.email}`} ref={`categories-${e.email}`}>
+                            <td>{e.full_name}</td>
+                            <td>{e.email}</td>
+                            <td>
+                              <Select
+                                name={`categories-${e.email}`}
+                                multi
+                                placeholder='Select a few...'
+                                value={e.categories}
+                                // onChange={(val) => this.handleChange(val, e.email)}
+                                onChange={(value) => this.handleChange(value, e.email)}
+                                options={this.state.options}
+                              />
+                            </td>
 
-                        </tr>
-                      )
-                    })
+                          </tr>
+                        )
+                      })
                 }
               </tbody>
             </Table>

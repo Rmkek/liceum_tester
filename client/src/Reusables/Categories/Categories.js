@@ -125,6 +125,7 @@ class Categories extends Component {
           }
         })
         console.log('this.state before if', this.state)
+
         if (this.state.categoryCollapse) {
           this.setState({assignments: renderedAssignments, pack_category_value: category, assignmentCollapse: !this.state.assignmentCollapse})
         } else {

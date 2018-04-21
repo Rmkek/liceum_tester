@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Table, Button, Row, Col, Container } from 'reactstrap'
+import { Table, Button, Row, Col, Container, Alert } from 'reactstrap'
 import Spinner from '../../../Reusables/Spinner/Spinner'
 import './ApproveStudents.css'
 
@@ -137,7 +137,7 @@ class ApproveStudents extends Component {
                   <th>Approve</th>
                 </tr>
               </thead>
-              <tbody>{this.state.table_body}</tbody>
+              <tbody>{this.state.users_in_table === 0 ? <tr><td colSpan={3}><Alert color='success'>No users to approve.</Alert></td></tr> : this.state.table_body}</tbody>
             </Table>
           </Container>
         </Col>
