@@ -8,7 +8,7 @@ const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 const path = require('path')
 const uuid = require('uuid/v4')
-const httpsRedirect = require('express-http-to-https')
+const httpsRedirect = require('express-http-to-https').redirectToHTTPS
 
 // working with file-system and saving user code
 const fs = require('fs')
@@ -61,7 +61,7 @@ if (!process.env.LOCAL_SERVER_PORT) {
 }
 
 app.use(compression())
-app.use(httpsRedirect())
+app.use(httpsRedirect([/localhost:5001/], [/\/insecure/], 302))
 
 app.use(
   session({
