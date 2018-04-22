@@ -15,6 +15,7 @@
     "dropbox": "^4.0.1",
     "express": "4.16.2",
     "express-fileupload": "^0.4.0",
+    "express-http-to-https": "^1.1.4",
     "express-session": "^1.15.6",
     "graceful-fs": "^4.1.11",
     "isomorphic-fetch": "^2.2.1",

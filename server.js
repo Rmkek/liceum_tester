@@ -1,5 +1,6 @@
 const fetch = require('isomorphic-fetch') // used by dropbox api
 // server must-haves
+var compression = require('compression') // test var
 const express = require('express')
 const session = require('express-session')
 const MongoStore = require('connect-mongo')(session)
@@ -7,6 +8,7 @@ const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 const path = require('path')
 const uuid = require('uuid/v4')
+const httpsRedirect = require('express-http-to-https')
 
 // working with file-system and saving user code
 const fs = require('fs')
@@ -57,6 +59,10 @@ app.set('port', process.env.LOCAL_SERVER_PORT || process.env.PORT)
 if (!process.env.LOCAL_SERVER_PORT) {
   app.use(opbeat.middleware.express())
 }
+
+app.use(compression())
+app.use(httpsRedirect())
+
 app.use(
   session({
     store: new MongoStore({

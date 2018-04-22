@@ -6,7 +6,7 @@
   font-size: 20px;
   color: black;
   letter-spacing: 1px;
-  font-family: "Merriweather", serif;
+  font-family: 'Merriweather', serif;
 }
 
 .heart {
@@ -26,7 +26,6 @@
   }
 }
 
-/* Heart beat animation */
 @keyframes beat{
   from {color: #000}
 	to { color: red }

@@ -14,7 +14,6 @@
 
 .test__container {
     padding: 1em;
-     /* shadows and rounded borders */
      -moz-border-radius: 5px;
      -webkit-border-radius: 5px;
      border-radius: 5px;
