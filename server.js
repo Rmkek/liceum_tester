@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const fetch = require('isomorphic-fetch') // used by dropbox api
 // server must-haves
 var compression = require('compression') // test var
@@ -26,9 +28,6 @@ const dbx = new Dropbox({
   accessToken: process.env.DROPBOX_ACCESS_TOKEN
 })
 
-// app managemenent
-const opbeat = require('opbeat').start()
-
 const app = express()
 
 const ASSIGNMENT_CONSTANTS = require('./client/src/Backend_answers/AssignmentConstants')
@@ -54,11 +53,11 @@ console.log('Resolved code saving directory: ', CODE_SAVING_DIRECTORY)
 if (!fs.existsSync(CODE_SAVING_DIRECTORY)) {
   fs.mkdirSync(CODE_SAVING_DIRECTORY)
 }
-
+console.log('Process.env: ', process.env)
 app.set('port', process.env.LOCAL_SERVER_PORT || process.env.PORT)
-if (!process.env.LOCAL_SERVER_PORT) {
-  app.use(opbeat.middleware.express())
-}
+// if (!process.env.LOCAL_SERVER_PORT) {
+// app.use(opbeat.middleware.express())
+// }
 
 app.use(compression())
 app.use(httpsRedirect([/localhost:5001/], [/\/insecure/], 302))
@@ -710,6 +709,7 @@ app.post('/api/upload-code', checkLoginMiddleware({}), (req, res, next) => {
             break
           }
         }
+
         User.findByIdAndUpdate(req.user._id, req.user, {
           new: true
         })
