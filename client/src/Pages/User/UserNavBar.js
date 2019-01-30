@@ -29,7 +29,7 @@ class UserNavBar extends Component {
   render () {
     return this.state.redirected ? <Redirect to='/' /> : (
       <Navbar color='faded' light expand='md'>
-        <NavbarBrand href='/assignments'>Liceum Tester User Panel</NavbarBrand>
+        <NavbarBrand href='/assignments'>TestMyCode User Panel</NavbarBrand>
         <Nav className='ml-auto' navbar>
           <NavItem>
             <i className='fas fa-sign-out-alt logout-button' onClick={this.logout} />

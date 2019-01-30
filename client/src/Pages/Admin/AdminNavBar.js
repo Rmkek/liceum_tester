@@ -5,7 +5,7 @@ class AdminNavBar extends Component {
   render () {
     return (
       <Navbar color='faded' light expand='md'>
-        <NavbarBrand href='/admin'>Liceum Tester Admin Panel</NavbarBrand>
+        <NavbarBrand href='/admin'>TestMyCode Admin Panel</NavbarBrand>
       </Navbar>
     )
   }

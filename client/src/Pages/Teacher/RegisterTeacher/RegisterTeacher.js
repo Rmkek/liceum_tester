@@ -167,7 +167,7 @@ class RegisterTeacher extends Component {
                   modal_title: 'Error',
                   modal_text: 'Some backend exception happened. Report this incident to your teacher or to ',
                   contact_link: (
-                    <a href='mailto:malyshkov.roman@gmail.com?subject=Liceum Tester'>
+                    <a href='mailto:malyshkov.roman@gmail.com?subject=TestMyCode'>
                     Roman Malyshkov
                     </a>
                   )
@@ -178,7 +178,7 @@ class RegisterTeacher extends Component {
                   modal_title: 'Error',
                   modal_text: 'Something really, really bad mumbo-jumbo happened. Immediately report it to ',
                   contact_link: (
-                    <a href='mailto:malyshkov.roman@gmail.com?subject=Liceum Tester'>
+                    <a href='mailto:malyshkov.roman@gmail.com?subject=TestMyCode'>
                     Roman Malyshkov
                     </a>
                   )

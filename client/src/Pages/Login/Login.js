@@ -119,7 +119,7 @@ class Login extends Component {
                   modal_title: 'Error',
                   modal_text: 'Something really, really bad mumbo-jumbo happened. Immediately report it to ',
                   contact_link: (
-                    <a href='mailto:malyshkov.roman@gmail.com?subject=Liceum Tester'>
+                    <a href='mailto:malyshkov.roman@gmail.com?subject=TestMyCoded'>
                     Roman Malyshkov
                     </a>
                   )

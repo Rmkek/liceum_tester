@@ -7,7 +7,7 @@ class Footer extends Component {
       <div className='footer'>
         <div>
           <p>
-          Created with <i className='fas fa-heart heart' /> by <a className='footer__name-margin' href='mailto:malyshkov.roman@gmail.com?subject=Liceum Tester'> Malyshkov Roman </a>
+          Created with <i className='fas fa-heart heart' /> by <a className='footer__name-margin' href='mailto:malyshkov.roman@gmail.com?subject=TestMyCode'> Malyshkov Roman </a>
           </p>
         </div>
       </div>

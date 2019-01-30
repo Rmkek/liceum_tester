@@ -30,7 +30,7 @@ class TeacherNavBar extends Component {
   render () {
     return this.state.redirected ? <Redirect to='/' /> : (
       <Navbar color='faded' light expand='md'>
-        <NavbarBrand href='/teacher'>Liceum Tester Teacher Panel</NavbarBrand>
+        <NavbarBrand href='/teacher'>TestMyCode Teacher Panel</NavbarBrand>
         <Nav className='ml-auto' navbar>
           <NavItem>
             <NavLink href='/teacher'>My Profile</NavLink>

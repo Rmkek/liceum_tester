@@ -1,0 +1,15 @@
+{
+  "short_name": "Code Tester",
+  "name": "Liceum 64 Tester front-end",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "index.html",
+  "display": "standalone",
+  "theme_color": "#7fdbff",
+  "background_color": "#ffffff"
+}

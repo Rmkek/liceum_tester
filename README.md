@@ -1,4 +1,4 @@
-# Liceum Tester
+# TestMyCode
 
 Checking assignments have never been easier.
 
