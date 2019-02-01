@@ -113,7 +113,7 @@ class ApproveStudents extends Component {
             Approve
               </Button>
             </Col>
-            <Col xs={{offset: 8, size: 2}}>
+            <Col xs={{offset: 7, size: 2}}>
               <Button color='danger' onClick={this.removeStudent} index={keyIter}>
                 <i className='fa fa-trash trash-button' />
               </Button>

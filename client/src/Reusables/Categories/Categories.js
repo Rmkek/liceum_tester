@@ -29,6 +29,7 @@ class Categories extends Component {
       clicked_assignment: '',
       current_assignment: ''
     }
+
     console.log(this.props)
     if (this.props.isTeacher) {
       window.fetch(`/api/get-teacher-categories`, {
